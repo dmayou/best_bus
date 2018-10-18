@@ -4,6 +4,9 @@
 // let xhr = HTTPInit(); // XML HTTP Request object
 // let response = null; // response data from web source
 
+// Initialize sample trip array for 'home to work' Journey
+let trip = initTrip();
+
 const wait1Min = 60000;
 // const wait1Min = 15000;
 // window.setInterval(update, wait1Min); // update every minute
@@ -18,38 +21,98 @@ function update () {
 
   const url = "http://svc.metrotransit.org/NexTrip/";
   const jsonSuffix = "?format=json";
+  /*let*/ stops = getUniqueStops();
   // let stops = [
-  stops = { stopIDs: [
-               '56703',  // Seward towers
-               '51533',  // Franklin Ave Station
-               '51427',  // Franklin Ave Station
-               '51424']  // Government Plaza Station
-          }
+  // stops = { stopIDs: [
+          //      '56703',  // Seward towers
+          //      '51533',  // Franklin Ave Station
+          //      '51427',  // Franklin Ave Station
+          //      '51424']  // Government Plaza Station
+          // }
 
-  let stopUrls = stops.stopIDs.map(s => url + s + jsonSuffix);
+  // let stopUrls = stops.stopIDs.map(s => url + s + jsonSuffix);
+  let stopUrls = Object.keys(stops).map(key => url + key + jsonSuffix);
+  // console.log(stopUrls);
 
   Promise.all(stopUrls.map(url => fetch(url).then(resp => resp.text())))
-              // .then(texts => console.log(JSON.parse(texts[0])));
-              // .then(texts => console.log(texts));
               .then(texts => storeRouteData(texts, stops));
-              // get these keys: DepartureText: "8 Min",
-              //                 DepartureTime: "/Date(1539802920000-0500)/"
-              //                 Route: "2"
   ////
 }
 
-function storeRouteData(resp, arr) {
-  const storedArrivals = 4; //store first four arrivals for each stop
-  for (let i=0; i<resp.length; i++) { // each index represents an HTML response
-    arr[String(arr.stopIDs[i])] = [];
-    for (let j=0; j<storedArrivals; j++) { // index of individual arrival at stop
-      let temp = JSON.parse(resp[i])[j];
-      arr[String(arr.stopIDs[i])][j] = {}; // empty object to allow adding keys
-      arr[String(arr.stopIDs[i])][j].actual = temp.Actual;
-      arr[String(arr.stopIDs[i])][j].depart = temp.DepartureText;
-      arr[String(arr.stopIDs[i])][j].departTime = temp.DepartureTime;
-      arr[String(arr.stopIDs[i])][j].route = temp.Route;
+function initTrip() {
+// The Trip array would be initialized based on which Journey button the
+// user chooses.
+  // Trip array: 2-D array
+  //     - 1st index: Trip (for each possible sequence of legs)
+  //     - 2nd index: Leg (for each Leg to realize the Trip)
+  // 	Leg: object with the following keys:
+  //     - routes: array with Metro Transit route numbers (e.g., [‘2’, ‘9’]
+  //     - Begin stop ID
+  //     - End stop ID
+  let arr = [];
+  let ways = 3; // number of Trips (i.e., sequence of Legs)
+
+  for (let i=0; i<ways; i++) { // init multidimentional array
+    arr[i] = [];
+  }
+  arr[0][0] = { route  : ['7'],     // northbound
+                 beginID: '16320',  // 27th Av & 25th St
+                 endID  : '19294'  // 4th Av & 3rd St
+               }
+  arr[1][0] = { route  : ['2', '67'], // westbound
+                 beginID: '56703',  // seward towers
+                 endID  : '51533'  // Franklin Ave Station
+               }
+  arr[1][1] = { route  : ['Blu'],    // Blue Line
+                 beginID: '51427',  // Franklin Ave Station
+                 endID  : '51424'  // Government Plaza Station
+               }
+  arr[2][0] = { route  : ['2'],    // eastbound
+                 beginID: '13261', // seward towers
+                 endID  : '13221'  // Wash & Cedar
+               }
+  arr[2][1] = { route  : ['Grn'],    // Blue Line
+                 beginID: '56043',  // West Bank Station
+                 endID  : '51424'  // Government Plaza Station
+               }
+  return arr;
+}
+
+function getUniqueStops() {
+  // Returns object
+  // key for each unique stop
+  // each key value is empty array
+  let obj = {};
+  for (let i=0; i<trip.length; i++) {
+    for (let j=0; j<trip[i].length; j++) {
+        obj[trip[i][j]['beginID']] = [];
+        obj[trip[i][j]['endID']] = [];
     }
+  }
+  return obj;
+}
+
+function storeRouteData(resp, arr) {
+  // Take data from fetched responses, parse out and store needed keys.
+  //
+  // The order of the keys in the arguments and in this routine are the sample
+  // because they use object.keys and for.in. Beware of changing implementations
+  // that might result in a different ordering. See:
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys
+
+  // const storedArrivals = 4; //store first four arrivals for each stop
+  let i = 0; // index for resp argument, ordered same as enumerated keys
+  for (let stop in arr) {
+    // arr[String(arr.stopIDs[i])] = []; // now init in getUniqueStops
+    let arrivals = JSON.parse(resp[i]); // array of arrivals for a given stop
+    for (let j=0; j<arrivals.length; j++) { // index of individual arrival at stop
+      arr[stop][j] = {}; // empty object to allow adding keys
+      arr[stop][j].actual = arrivals[j].Actual;
+      arr[stop][j].depart = arrivals[j].DepartureText;
+      arr[stop][j].departTime = arrivals[j].DepartureTime;
+      arr[stop][j].route = arrivals[j].Route;
+    }
+    i++;
   }
 }
 
