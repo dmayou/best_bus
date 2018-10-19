@@ -47,25 +47,29 @@ function initTrip() {
   }
   arr[0][0] = { route  : ['7'],     // northbound
                  beginID: '16320',  // 27th Av & 25th St
-                 endID  : '19294'  // 4th Av & 3rd St
+                 endID  : '19294',  // 4th Av & 3rd St
+                 nominalDur: 600    // low estimate of duration in seconds
                }
   arr[1][0] = { route  : ['2', '67'], // westbound
                  beginID: '56703',  // seward towers
-                 endID  : '51533'  // Franklin Ave Station
+                 endID  : '51533',  // Franklin Ave Station
+                 nominalDur: 180
                }
   arr[1][1] = { route  : ['Blue'],    // Blue Line
                  beginID: '51427',  // Franklin Ave Station
-                 endID  : '51424'  // Government Plaza Station
+                 endID  : '51424',  // Government Plaza Station
+                 nominalDur: 360
                }
   arr[2][0] = { route  : ['2'],    // eastbound
                  beginID: '13261', // seward towers
-                 endID  : '13221'  // Wash & Cedar
+                 endID  : '13221',  // Wash & Cedar
+                 nominalDur: 400
                }
   arr[2][1] = { route  : ['Grn'],    // Blue Line
                  beginID: '56043',  // West Bank Station
-                 endID  : '51424'  // Government Plaza Station
+                 endID  : '51424',  // Government Plaza Station
+                 nominalDur: 180
                }
-               console.log(arr[1][0]['route']);
   return arr;
 }
 
@@ -86,12 +90,11 @@ function getUniqueStops() {
 function storeRouteData(resp, arr) {
   // Take data from fetched responses, parse out and store needed keys.
   //
-  // The order of the keys in the arguments and in this routine are the sample
-  // because they use object.keys and for.in. Beware of changing implementations
+  // The order of the keys in the arguments and in this routine are the same
+  // because they use object.keys and for.in. Beware of changing implementation
   // that might result in a different ordering. See:
   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys
 
-  // const storedArrivals = 4; //store first four arrivals for each stop
   let i = 0; // index for resp argument, ordered same as enumerated keys
   for (let stop in arr) {
     let arrivals = JSON.parse(resp[i]); // array of arrivals for a given stop
@@ -100,13 +103,36 @@ function storeRouteData(resp, arr) {
         arr[stop][k] = {}; // empty object to allow adding keys
         arr[stop][k].actual = arrivals[j].Actual;
         arr[stop][k].depart = arrivals[j].DepartureText;
-        arr[stop][k].departTime = arrivals[j].DepartureTime;
+        arr[stop][k].departTime = metroTransitDateToNum(arrivals[j].DepartureTime);
         arr[stop][k].route = arrivals[j].Route;
         k++;
       }
     }
     i++;
   }
+  putTogetherTrip();
+}
+
+function putTogetherTrip() {
+  for (let i=0; i<trip.length; i++) {
+    // for the first leg (i.e., j=0):
+    trip[i][0].beginTime = stops[ trip[i][0]['beginID'] ][0]['depart'];
+    trip[i][0].endTime = timeAtEndOfLeg(
+                         stops[ trip[i][0]['beginID'] ][0]['departTime'],
+                         trip[i][0].route,
+                         stops[trip[i][0].endID],
+                         trip[i][0].nominalDur);
+    for (let j=1; j<trip[i].length; j++) {
+      trip[i][j].beginTime = getArrAfterTime(trip[i][j-1].endTime,
+                             stops[trip[i][j].beginID]);
+      trip[i][j].endTime = timeAtEndOfLeg(
+                           stops[ trip[i][j]['beginID'] ][j]['departTime'],
+                           trip[i][j].route,
+                           stops[trip[i][j].endID],
+                           trip[i][j].nominalDur);
+    }
+  }
+
   displayJourney();
 }
 
@@ -121,6 +147,45 @@ function displayJourney() {
                   ${stop} is ${stops[stop][0]['depart']}.`);
     }
   }
+}
+
+function timeAtEndOfLeg(timeAtBeginID, route, arrivalsEndID, nominalDur) {
+  // In order to match up different legs of the trip, we must determine when
+  // the bus/train that leaves the beginID at a given time will arrive at the
+  // endID.
+  // We do this by looking for the arrival at endID that is after the arrival
+  // time at beginID plus nominalDur.
+  // Earliest time to reach endID is
+  // +stops[ trip[i][j].beginID ].DepartureTime + trip[i][j].nomDur*1000
+  // Find index of arrival with next greater time and return value of
+  // stops.stop.depart for stop = trip[i][j+1].beginID
+  let nomArrTime = timeAtBeginID + (nominalDur * 1000);
+  for (let i=0; i<arrivalsEndID.length; i++) {
+    if (arrivalsEndID.departTime > nomArrTime
+        && arrivalsEndID[i].route === route) {
+      return arrivalsEndID[i].depart;
+    }
+  }
+  return null;
+}
+
+function getArrAfterTime(time, arrivals) {
+  for (let i=0; i<arrivals.length; i++) {
+    if (arrivals[i].departTime > time) {
+      return arrivals[i].depart;
+    }
+  }
+  return null;
+}
+
+function metroTransitDateToNum(d) {
+  // www.metrotransit.org uses date/time format in this form:
+  //  \/Date(1539990000000-0500)\
+  // since this program uses this field for relative measures, we can extract
+  // the inner 13 numerals and return them as a number. This number is in ms.
+  // Even though the last 3 digits represent ms and are always 000 in testing,
+  // they are left as is since it is common to express time in ms.
+  return +d.substring(6, 19);
 }
 
 // function display(e) {
