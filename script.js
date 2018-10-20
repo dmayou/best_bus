@@ -1,7 +1,7 @@
 // Metro Transit web service definitions at http://svc.metrotransit.org/
 
-// 'use strict';
-
+'use strict';
+/**//*
 // Initialize sample trip array for 'home to work' Journey
 let trip = initTrip();
 
@@ -19,20 +19,20 @@ function update () {
 
   const url = "http://svc.metrotransit.org/NexTrip/";
   const jsonSuffix = "?format=json";
-  /*let*/ stops = getUniqueStops();
+  let stops = getUniqueStops();
 
   let stopUrls = Object.keys(stops).map(key => url + key + jsonSuffix);
 
   Promise.all(stopUrls.map(url => fetch(url).then(resp => resp.text())))
               .then(texts => storeRouteData(texts, stops));
 
-}
+}*//**/
+/////// New Class Code begins here
 
 class Stop {
   constructor(stopId, routes) {
     this.stopId = stopId; // Metro Transit Stop ID
     this.routes = routes; // string array
-    this.update();
   }
   update() {
     // parse stuff from fetch/promise
@@ -51,25 +51,147 @@ class Leg {
   constructor(beginID, endID, routes, nominalDuration, descr) {
     this.begin = new Stop(beginID, routes);
     this.end = new Stop(endID, routes);
-    this.dur = nominalDuration; // in seconds
+    this.dur = nominalDuration; // low estimate of travel duration in seconds
     this.descr = descr;
+  }
+  update() {
+    this.begin.update();
+    this.end.update();
   }
 }
 
 class Trip {
-  constructor(legs) {
-    this.firstLeg = {}; // init as empty objects
-    this.lastLeg = {};
-    this.desc = '';
+  constructor(descr, obj) {
+    this.firstLeg = new Leg(
+      obj.firstLeg.beginID,
+      obj.firstLeg.endID,
+      obj.firstLeg.routes,
+      obj.firstLeg.nominalDur, ''
+    );
+    this.lastLeg = new Leg(
+      obj.lastLeg.beginID,
+      obj.lastLeg.endID,
+      obj.lastLeg.routes,
+      obj.lastLeg.nominalDur, ''
+    );
+    this.descr = descr;
+  }
+  numLegs() {
+    if (isEmpty(this.firstLeg)) {
+      return 0;
+    } else if (isEmpty(this.lastLeg)) {
+      return 1;
+    } else {
+      return 2;
+    }
+  }
+  update() {
+    if (this.getNumLegs === 0) {
+      return;
+    } else {
+      this.firstLeg.update();
+      if (this.getNumLegs === 2) {
+        this.lastLeg.update();
+      }
+    }
   }
 }
 
 class Journey {
-  constructor(trips, descr) {
+  constructor(descr) {
     this.trips = [];
     this.descr = descr;
   }
+  addTrip(obj) {
+    let trip = new Trip(
+      '', // description
+      { firstLeg :
+        { routes  : ['2', '67'], // westbound
+          beginID: '56703',  // seward towers
+          endID  : '51533',  // Franklin Ave Station
+          nominalDur: 180,
+          desc : ''
+        },
+        lastLeg :
+        {
+        }
+      }
+    );
+    this.trips.push(trip);
+  }
+
+  getNumTrips() {
+    return trips.length;
+  }
+  getUniqueStops() {
+    // returns object with key for each unique stop
+    let obj = {};
+    for (let trip of this.trips) {
+      obj[trip.firstLeg.begin.stopId] = [];
+      obj[trip.firstLeg.end.stopId] = [];
+      obj[trip.lastLeg.begin.stopId] = [];
+      obj[trip.lastLeg.end.stopId] = [];
+    }
+    return obj;
+  }
+
+  update() {
+    for (let trip of this.trips) {
+      trip.update();
+    }
+  }
 }
+
+let journey = new Journey('Home to Work');
+journey.addTrip(
+  { firstLeg :
+    { route  : ['7'],    // northbound
+      beginID: '16320',  // 27th Av & 25th St
+      endID  : '19294',  // 4th Av & 3rd St
+      nominalDur: 600,
+      descr : ''
+    },
+    lastLeg :
+    {
+    }
+  }
+);
+journey.addTrip(
+  { firstLeg :
+    { route  : ['2', '67'], // westbound
+      beginID: '56703',  // seward towers
+      endID  : '51533',  // Franklin Ave Station
+      nominalDur: 180,
+      desc : ''
+    },
+    lastLeg :
+    { route  : ['Blue'],    // Blue Line
+      beginID: '51427',  // Franklin Ave Station
+      endID  : '51424',  // Government Plaza Station
+      nominalDur: 360,
+      descr : ''
+    }
+  }
+);
+journey.addTrip(
+  { firstLeg :
+    { route  : ['2'],    // eastbound
+      beginID: '13261', // seward towers
+      endID  : '13221',  // Wash & Cedar
+      nominalDur: 400,
+      desc : ''
+    },
+    lastLeg :
+    { route  : ['Grn'],    // Blue Line
+      beginID: '56043',  // West Bank Station
+      endID  : '51424',  // Government Plaza Station
+      nominalDur: 180,
+      descr : ''
+    }
+  }
+);
+
+///// end new Class code
 
 function initTrip() {
 // The Trip array would be initialized based on which Journey button the
