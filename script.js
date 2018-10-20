@@ -1,8 +1,6 @@
 // Metro Transit web service definitions at http://svc.metrotransit.org/
 
 // 'use strict';
-// let xhr = HTTPInit(); // XML HTTP Request object
-// let response = null; // response data from web source
 
 // Initialize sample trip array for 'home to work' Journey
 let trip = initTrip();
@@ -143,8 +141,10 @@ function displayJourney() {
     for (let j=0; j<trip[i].length; j++) {
       let route = trip[i][j]['route'];
       let stop = trip[i][j]['beginID'];
+      let time = trip[i][j]['beginTime'];
       console.log(`Next arrival for route ${route} at stop
-                  ${stop} is ${stops[stop][0]['depart']}.`);
+                  ${stop} is ${time}.`);
+                  // ${stop} is ${stops[stop][0]['depart']}.`);
     }
   }
 }
@@ -160,19 +160,21 @@ function timeAtEndOfLeg(timeAtBeginID, route, arrivalsEndID, nominalDur) {
   // Find index of arrival with next greater time and return value of
   // stops.stop.depart for stop = trip[i][j+1].beginID
   let nomArrTime = timeAtBeginID + (nominalDur * 1000);
-  for (let i=0; i<arrivalsEndID.length; i++) {
-    if (arrivalsEndID.departTime > nomArrTime
-        && arrivalsEndID[i].route === route) {
-      return arrivalsEndID[i].depart;
+  // for (let i=0; i<arrivalsEndID.length; i++) {
+  for (let key in arrivalsEndID) {
+    if (arrivalsEndID[key].departTime > nomArrTime
+        && route.includes(arrivalsEndID[key].route)) {
+      return arrivalsEndID[key].departTime;
     }
   }
   return null;
 }
 
 function getArrAfterTime(time, arrivals) {
-  for (let i=0; i<arrivals.length; i++) {
-    if (arrivals[i].departTime > time) {
-      return arrivals[i].depart;
+  // for (let i=0; i<arrivals.length; i++) {
+  for (let key in arrivals) {
+    if (arrivals[key].departTime > time) {
+      return arrivals[key].depart; // in human-readable for display purposes
     }
   }
   return null;
@@ -182,36 +184,13 @@ function metroTransitDateToNum(d) {
   // www.metrotransit.org uses date/time format in this form:
   //  \/Date(1539990000000-0500)\
   // since this program uses this field for relative measures, we can extract
-  // the inner 13 numerals and return them as a number. This number is in ms.
-  // Even though the last 3 digits represent ms and are always 000 in testing,
-  // they are left as is since it is common to express time in ms.
+  // the inner 13 numerals and return them as a number for comparison with
+  // other values obtained in this way. This number is in ms.
+  // Even though the last 3 digits representing ms and are always returned as
+  // 000 by metrotransit.org in testing, they are included as-is since it is
+  // common to express time in ms. This quantity is well below MAX_SAFE_INTEGER.
   return +d.substring(6, 19);
 }
-
-// function display(e) {
-//     if (xhr.readyState == 4) {
-//       if (xhr.status == 200) {
-//         response =xhr.response[0].DepartureText;
-//         console.log(response);
-//       } else {
-//         console.log('Request status error', xhr.status);
-//       }
-//     } else {
-//       console.log('Ready state =', xhr.readyState);
-//     }
-// }
-//
-// function HTTPInit() {
-//   let xhr = new XMLHttpRequest();
-//   xhr.responseType = "json";
-//   xhr.onreadystatechange = display;
-//   return xhr;
-// }
-//
-// function HTTPRequest(uri) {
-//   xhr.open('GET', uri, true);
-//   xhr.send();
-// }
 
 // Terminology:
 //  journey: set of beginning and ending point (e.g., home to work)
