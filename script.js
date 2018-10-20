@@ -21,22 +21,31 @@ class Stop {
     this.dep = []; // array of departures
   }
   update() {
-    // parse stuff from fetch/promise
-    // only for routes
     for (let i=0, j=0; i<webData[this.stopId].length; i++) {
       if (this.routes.includes(webData[this.stopId][i].route)) {
         this.dep[j] = webData[this.stopId][i];
         j++;
       }
     }
-
   }
+
   getNextDeparture() {
-    return /* time */; // return object of {readableTime, timeInMs}
+    return {
+      time : this.dep[0].depart,
+      timeInMs : this.dep[0].departTime
+    }
   }
   getNextDepartureAfterTime(time) {
     // time in ms
-    return /* time */;
+    for (let i=0; i<webData[this.stopId].length; i++) {
+      if (webData[this.stopId][i].departTime > time) {
+        return {
+          time : this.dep[i].depart,
+          timeInMs : this.dep[i].departTime
+        }
+      }
+    }
+    return null;
   }
 }
 
