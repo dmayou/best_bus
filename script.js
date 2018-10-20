@@ -5,6 +5,7 @@
 // Initialize sample trip array for 'home to work' Journey
 let trip = initTrip();
 
+
 const wait1Min = 60000;
 // const wait1Min = 15000;
 // window.setInterval(update, wait1Min); // update every minute
@@ -25,6 +26,49 @@ function update () {
   Promise.all(stopUrls.map(url => fetch(url).then(resp => resp.text())))
               .then(texts => storeRouteData(texts, stops));
 
+}
+
+class Stop {
+  constructor(stopId, routes) {
+    this.stopId = stopId; // Metro Transit Stop ID
+    this.routes = routes; // string array
+    this.update();
+  }
+  update() {
+    // parse stuff from fetch/promise
+    // only for routes
+  }
+  getNextDeparture() {
+    return /* time */; // return object of {readableTime, timeInMs}
+  }
+  getNextDepartureAfterTime(time) {
+    // time in ms
+    return /* time */;
+  }
+}
+
+class Leg {
+  constructor(beginID, endID, routes, nominalDuration, descr) {
+    this.begin = new Stop(beginID, routes);
+    this.end = new Stop(endID, routes);
+    this.dur = nominalDuration; // in seconds
+    this.descr = descr;
+  }
+}
+
+class Trip {
+  constructor(legs) {
+    this.firstLeg = {}; // init as empty objects
+    this.lastLeg = {};
+    this.desc = '';
+  }
+}
+
+class Journey {
+  constructor(trips, descr) {
+    this.trips = [];
+    this.descr = descr;
+  }
 }
 
 function initTrip() {
