@@ -12,7 +12,6 @@ const wait1Min = 60000;
 update();
 
 }*//**/
-/////// New Class Code begins here
 
 class Stop {
   constructor(stopId, routes) {
@@ -29,13 +28,13 @@ class Stop {
     }
   }
 
-  getNextDeparture() {
+  nextDeparture() {
     return {
       time : this.dep[0].depart,
       timeInMs : this.dep[0].departTime
     }
   }
-  getNextDepartureAfterTime(time) {
+  nextDepartureAfterTime(time) {
     // time in ms
     for (let i=0; i<webData[this.stopId].length; i++) {
       if (webData[this.stopId][i].departTime > time) {
@@ -102,6 +101,7 @@ class Journey {
     this.trips = [];
     this.descr = descr;
   }
+
   addTrip(obj) {
     let trip = new Trip(
       '', // description
@@ -110,9 +110,10 @@ class Journey {
     this.trips.push(trip);
   }
 
-  getNumTrips() {
-    return trips.length;
+  numTrips() {
+    return this.trips.length;
   }
+
   uniqueStops() {
     // returns object with key for each unique stop
     let obj = {};
@@ -131,6 +132,29 @@ class Journey {
   update() {
     for (let trip of this.trips) {
       trip.update();
+    }
+  }
+
+  display() {
+    console.log(`For this journey ${this.descr}:`);
+
+    for (let i=0; i<this.numTrips(); i++) {
+      // first leg
+      console.log(`Trip ${i}:`);
+      let routes = this.trips[i].firstLeg.begin.routes;
+      let stop = this.trips[i].firstLeg.begin.stopId;
+      let time = this.trips[i].firstLeg.begin.nextDeparture();
+      console.log(`Next arrival for route ${routes} at stop
+                  ${stop} is ${time.time}.`);
+      // last leg
+      if (this.trips[i].hasLastLeg()) {
+        let routes = this.trips[i].lastLeg.begin.routes;
+        let stop = this.trips[i].lastLeg.begin.stopId;
+        let time2 = this.trips[i].lastLeg.begin.nextDepartureAfterTime(
+                      time.timeInMs + this.trips[i].firstLeg.dur);
+        console.log(`Next arrival for route ${routes} at stop
+                    ${stop} is ${time2.time}.`);
+      }
     }
   }
 }
@@ -158,7 +182,7 @@ function initJourney() {
       { routes : ['2', '67'], // westbound
         beginID: '56703',  // seward towers
         endID  : '51533',  // Franklin Ave Station
-        nominalDur: 180,
+        nominalDur: 240,
         desc : ''
       },
       lastLeg :
@@ -182,7 +206,7 @@ function initJourney() {
       { routes : ['Grn'],    // Blue Line
         beginID: '56043',  // West Bank Station
         endID  : '51424',  // Government Plaza Station
-        nominalDur: 180,
+        nominalDur: 240,
         descr : ''
       }
     }
@@ -209,13 +233,11 @@ function webUpdate (stops) {
                 {
                   storeRouteData(texts, stops),
                   journey.update(),
-                  console.log('and the display!');
+                  journey.display();
                 }
             );
 
 }
-
-///// end new Class code
 
 function storeRouteData(resp, arr) {
   // Take data from fetched responses, parse out and store needed keys.
@@ -241,75 +263,6 @@ function storeRouteData(resp, arr) {
     i++;
   }
   webData = arr; // update variable with larger scope
-}
-
-function putTogetherTrip() {
-  for (let i=0; i<trip.length; i++) {
-    // for the first leg (i.e., j=0):
-    trip[i][0].beginTime = stops[ trip[i][0]['beginID'] ][0]['depart'];
-    trip[i][0].endTime = timeAtEndOfLeg(
-                         stops[ trip[i][0]['beginID'] ][0]['departTime'],
-                         trip[i][0].route,
-                         stops[trip[i][0].endID],
-                         trip[i][0].nominalDur);
-    for (let j=1; j<trip[i].length; j++) {
-      trip[i][j].beginTime = getArrAfterTime(trip[i][j-1].endTime,
-                             stops[trip[i][j].beginID]);
-      trip[i][j].endTime = timeAtEndOfLeg(
-                           stops[ trip[i][j]['beginID'] ][j]['departTime'],
-                           trip[i][j].route,
-                           stops[trip[i][j].endID],
-                           trip[i][j].nominalDur);
-    }
-  }
-
-  displayJourney();
-}
-
-function displayJourney() {
-  console.log('For this journey from home to work:');
-  for (let i=0; i<trip.length; i++) {
-    console.log(`Trip ${i}:`);
-    for (let j=0; j<trip[i].length; j++) {
-      let route = trip[i][j]['route'];
-      let stop = trip[i][j]['beginID'];
-      let time = trip[i][j]['beginTime'];
-      console.log(`Next arrival for route ${route} at stop
-                  ${stop} is ${time}.`);
-                  // ${stop} is ${stops[stop][0]['depart']}.`);
-    }
-  }
-}
-
-function timeAtEndOfLeg(timeAtBeginID, route, arrivalsEndID, nominalDur) {
-  // In order to match up different legs of the trip, we must determine when
-  // the bus/train that leaves the beginID at a given time will arrive at the
-  // endID.
-  // We do this by looking for the arrival at endID that is after the arrival
-  // time at beginID plus nominalDur.
-  // Earliest time to reach endID is
-  // +stops[ trip[i][j].beginID ].DepartureTime + trip[i][j].nomDur*1000
-  // Find index of arrival with next greater time and return value of
-  // stops.stop.depart for stop = trip[i][j+1].beginID
-  let nomArrTime = timeAtBeginID + (nominalDur * 1000);
-  // for (let i=0; i<arrivalsEndID.length; i++) {
-  for (let key in arrivalsEndID) {
-    if (arrivalsEndID[key].departTime > nomArrTime
-        && route.includes(arrivalsEndID[key].route)) {
-      return arrivalsEndID[key].departTime;
-    }
-  }
-  return null;
-}
-
-function getArrAfterTime(time, arrivals) {
-  // for (let i=0; i<arrivals.length; i++) {
-  for (let key in arrivals) {
-    if (arrivals[key].departTime > time) {
-      return arrivals[key].depart; // in human-readable for display purposes
-    }
-  }
-  return null;
 }
 
 function metroTransitDateToNum(d) {
