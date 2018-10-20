@@ -11,21 +11,6 @@ const wait1Min = 60000;
 // window.setInterval(update, wait1Min); // update every minute
 update();
 
-function update () {
-  // HTTPRequest("http://svc.metrotransit.org/NexTrip/16320?format=json");
-  console.log('updating', Date());
-
-  // Fetch/Promise adapted from https://stackoverflow.com/questions/46503558/how-to-use-multiple-xmlhttprequest
-
-  const url = "http://svc.metrotransit.org/NexTrip/";
-  const jsonSuffix = "?format=json";
-  let stops = getUniqueStops();
-
-  let stopUrls = Object.keys(stops).map(key => url + key + jsonSuffix);
-
-  Promise.all(stopUrls.map(url => fetch(url).then(resp => resp.text())))
-              .then(texts => storeRouteData(texts, stops));
-
 }*//**/
 /////// New Class Code begins here
 
@@ -33,10 +18,18 @@ class Stop {
   constructor(stopId, routes) {
     this.stopId = stopId; // Metro Transit Stop ID
     this.routes = routes; // string array
+    this.dep = []; // array of departures
   }
   update() {
     // parse stuff from fetch/promise
     // only for routes
+    for (let i=0, j=0; i<webData[this.stopId].length; i++) {
+      if (this.routes.includes(webData[this.stopId][i].route)) {
+        this.dep[j] = webData[this.stopId][i];
+        j++;
+      }
+    }
+
   }
   getNextDeparture() {
     return /* time */; // return object of {readableTime, timeInMs}
@@ -62,37 +55,35 @@ class Leg {
 
 class Trip {
   constructor(descr, obj) {
-    this.firstLeg = new Leg(
-      obj.firstLeg.beginID,
-      obj.firstLeg.endID,
-      obj.firstLeg.routes,
-      obj.firstLeg.nominalDur, ''
-    );
-    this.lastLeg = new Leg(
-      obj.lastLeg.beginID,
-      obj.lastLeg.endID,
-      obj.lastLeg.routes,
-      obj.lastLeg.nominalDur, ''
-    );
+    if (obj.firstLeg !== {}) {
+      this.firstLeg = new Leg(
+        obj.firstLeg.beginID,
+        obj.firstLeg.endID,
+        obj.firstLeg.routes,
+        obj.firstLeg.nominalDur, ''
+      );
+    } else {
+        this.firstLeg = null;
+    }
+    if (obj.lastLeg !== {}) {
+      this.lastLeg = new Leg(
+        obj.lastLeg.beginID,
+        obj.lastLeg.endID,
+        obj.lastLeg.routes,
+        obj.lastLeg.nominalDur, ''
+      );
+    } else {
+      this.lastLeg = null;
+    }
     this.descr = descr;
   }
-  numLegs() {
-    if (isEmpty(this.firstLeg)) {
-      return 0;
-    } else if (isEmpty(this.lastLeg)) {
-      return 1;
-    } else {
-      return 2;
-    }
+  hasLastLeg() {
+    return this.lastLeg.dur !== undefined;
   }
   update() {
-    if (this.getNumLegs === 0) {
-      return;
-    } else {
-      this.firstLeg.update();
-      if (this.getNumLegs === 2) {
-        this.lastLeg.update();
-      }
+    this.firstLeg.update();
+    if (this.hasLastLeg()) {
+      this.lastLeg.update();
     }
   }
 }
@@ -105,17 +96,7 @@ class Journey {
   addTrip(obj) {
     let trip = new Trip(
       '', // description
-      { firstLeg :
-        { routes  : ['2', '67'], // westbound
-          beginID: '56703',  // seward towers
-          endID  : '51533',  // Franklin Ave Station
-          nominalDur: 180,
-          desc : ''
-        },
-        lastLeg :
-        {
-        }
-      }
+      obj
     );
     this.trips.push(trip);
   }
@@ -123,14 +104,17 @@ class Journey {
   getNumTrips() {
     return trips.length;
   }
-  getUniqueStops() {
+  uniqueStops() {
     // returns object with key for each unique stop
     let obj = {};
     for (let trip of this.trips) {
+      // if (trip.firstLeg.dur != undefined) { // is this leg not blank?
       obj[trip.firstLeg.begin.stopId] = [];
       obj[trip.firstLeg.end.stopId] = [];
-      obj[trip.lastLeg.begin.stopId] = [];
-      obj[trip.lastLeg.end.stopId] = [];
+      if (trip.hasLastLeg()) {
+        obj[trip.lastLeg.begin.stopId] = [];
+        obj[trip.lastLeg.end.stopId] = [];
+      }
     }
     return obj;
   }
@@ -142,114 +126,87 @@ class Journey {
   }
 }
 
-let journey = new Journey('Home to Work');
-journey.addTrip(
-  { firstLeg :
-    { route  : ['7'],    // northbound
-      beginID: '16320',  // 27th Av & 25th St
-      endID  : '19294',  // 4th Av & 3rd St
-      nominalDur: 600,
-      descr : ''
-    },
-    lastLeg :
-    {
+function initJourney() {
+  // eventually there will be a number of journeys defined there
+  // The user will press a button to choose a particular journey.
+  // Right now, the Home to Work journey is hardcoded.
+  let journey = new Journey('Home to Work');
+  journey.addTrip(
+    { firstLeg :
+      { routes : ['7'],    // northbound
+        beginID: '16320',  // 27th Av & 25th St
+        endID  : '19294',  // 4th Av & 3rd St
+        nominalDur: 600,
+        descr : ''
+      },
+      lastLeg :
+      {
+      }
     }
-  }
-);
-journey.addTrip(
-  { firstLeg :
-    { route  : ['2', '67'], // westbound
-      beginID: '56703',  // seward towers
-      endID  : '51533',  // Franklin Ave Station
-      nominalDur: 180,
-      desc : ''
-    },
-    lastLeg :
-    { route  : ['Blue'],    // Blue Line
-      beginID: '51427',  // Franklin Ave Station
-      endID  : '51424',  // Government Plaza Station
-      nominalDur: 360,
-      descr : ''
+  );
+  journey.addTrip(
+    { firstLeg :
+      { routes : ['2', '67'], // westbound
+        beginID: '56703',  // seward towers
+        endID  : '51533',  // Franklin Ave Station
+        nominalDur: 180,
+        desc : ''
+      },
+      lastLeg :
+      { routes : ['Blue'],    // Blue Line
+        beginID: '51427',  // Franklin Ave Station
+        endID  : '51424',  // Government Plaza Station
+        nominalDur: 360,
+        descr : ''
+      }
     }
-  }
-);
-journey.addTrip(
-  { firstLeg :
-    { route  : ['2'],    // eastbound
-      beginID: '13261', // seward towers
-      endID  : '13221',  // Wash & Cedar
-      nominalDur: 400,
-      desc : ''
-    },
-    lastLeg :
-    { route  : ['Grn'],    // Blue Line
-      beginID: '56043',  // West Bank Station
-      endID  : '51424',  // Government Plaza Station
-      nominalDur: 180,
-      descr : ''
+  );
+  journey.addTrip(
+    { firstLeg :
+      { routes : ['2'],    // eastbound
+        beginID: '13261', // seward towers
+        endID  : '13221',  // Wash & Cedar
+        nominalDur: 400,
+        desc : ''
+      },
+      lastLeg :
+      { routes : ['Grn'],    // Blue Line
+        beginID: '56043',  // West Bank Station
+        endID  : '51424',  // Government Plaza Station
+        nominalDur: 180,
+        descr : ''
+      }
     }
-  }
-);
+  );
+  return journey;
+}
+
+let webData; // initialized in promise
+let journey = initJourney();
+webUpdate(journey.uniqueStops());
+
+function webUpdate (stops) {
+  console.log('updating', Date());
+
+  // Fetch/Promise adapted from https://stackoverflow.com/questions/46503558/how-to-use-multiple-xmlhttprequest
+
+  const url = "http://svc.metrotransit.org/NexTrip/";
+  const jsonSuffix = "?format=json";
+
+  let stopUrls = Object.keys(stops).map(key => url + key + jsonSuffix);
+
+  Promise.all(stopUrls.map(url => fetch(url).then(resp => resp.text())))
+              .then(texts =>
+                {
+                  storeRouteData(texts, stops),
+                  journey.update(),
+                  console.log('and the display!');
+                }
+            );
+
+}
 
 ///// end new Class code
-
-function initTrip() {
-// The Trip array would be initialized based on which Journey button the
-// user chooses.
-  // Trip array: 2-D array
-  //     - 1st index: Trip (for each possible sequence of legs)
-  //     - 2nd index: Leg (for each Leg to realize the Trip)
-  // 	Leg: object with the following keys:
-  //     - routes: array with Metro Transit route numbers (e.g., [‘2’, ‘9’]
-  //     - Begin stop ID
-  //     - End stop ID
-  let arr = [];
-  let ways = 3; // number of Trips (i.e., sequence of Legs)
-
-  for (let i=0; i<ways; i++) { // init multidimentional array
-    arr[i] = [];
-  }
-  arr[0][0] = { route  : ['7'],     // northbound
-                 beginID: '16320',  // 27th Av & 25th St
-                 endID  : '19294',  // 4th Av & 3rd St
-                 nominalDur: 600    // low estimate of duration in seconds
-               }
-  arr[1][0] = { route  : ['2', '67'], // westbound
-                 beginID: '56703',  // seward towers
-                 endID  : '51533',  // Franklin Ave Station
-                 nominalDur: 180
-               }
-  arr[1][1] = { route  : ['Blue'],    // Blue Line
-                 beginID: '51427',  // Franklin Ave Station
-                 endID  : '51424',  // Government Plaza Station
-                 nominalDur: 360
-               }
-  arr[2][0] = { route  : ['2'],    // eastbound
-                 beginID: '13261', // seward towers
-                 endID  : '13221',  // Wash & Cedar
-                 nominalDur: 400
-               }
-  arr[2][1] = { route  : ['Grn'],    // Blue Line
-                 beginID: '56043',  // West Bank Station
-                 endID  : '51424',  // Government Plaza Station
-                 nominalDur: 180
-               }
-  return arr;
-}
-
-function getUniqueStops() {
-  // Returns object
-  // key for each unique stop
-  // each key value is empty array
-  let obj = {};
-  for (let i=0; i<trip.length; i++) {
-    for (let j=0; j<trip[i].length; j++) {
-        obj[trip[i][j]['beginID']] = {arrivals : [], routes : trip[i][j]['route']};
-        obj[trip[i][j]['endID']] = {arrivals : [], routes : trip[i][j]['route']};
-    }
-  }
-  return obj;
-}
 
 function storeRouteData(resp, arr) {
   // Take data from fetched responses, parse out and store needed keys.
@@ -261,20 +218,20 @@ function storeRouteData(resp, arr) {
 
   let i = 0; // index for resp argument, ordered same as enumerated keys
   for (let stop in arr) {
-    let arrivals = JSON.parse(resp[i]); // array of arrivals for a given stop
-    for (let j=0, k=0; j<arrivals.length; j++) { // index of individual arrival at stop
-      if (arr[stop]['routes'].indexOf(arrivals[j].Route) != -1) { // if arrival is for a route we are using
-        arr[stop][k] = {}; // empty object to allow adding keys
-        arr[stop][k].actual = arrivals[j].Actual;
-        arr[stop][k].depart = arrivals[j].DepartureText;
-        arr[stop][k].departTime = metroTransitDateToNum(arrivals[j].DepartureTime);
-        arr[stop][k].route = arrivals[j].Route;
-        k++;
-      }
+    let departures = JSON.parse(resp[i]); // array of departures for a given stop
+    for (let j=0; j<departures.length; j++) { // index of individual arrival at stop
+      // if (arr[stop]['routes'].indexOf(arrivals[j].Route) != -1) { // if arrival is for a route we are using
+        arr[stop][j] = {}; // empty object to allow adding keys
+        arr[stop][j].actual = departures[j].Actual; // true if actual time based on GPS data
+        arr[stop][j].depart = departures[j].DepartureText;
+        arr[stop][j].departTime = metroTransitDateToNum(departures[j].DepartureTime);
+        arr[stop][j].route = departures[j].Route;
+        // k++;
+      // }
     }
     i++;
   }
-  putTogetherTrip();
+  webData = arr; // update variable with larger scope
 }
 
 function putTogetherTrip() {
@@ -351,62 +308,10 @@ function metroTransitDateToNum(d) {
   //  \/Date(1539990000000-0500)\
   // since this program uses this field for relative measures, we can extract
   // the inner 13 numerals and return them as a number for comparison with
-  // other values obtained in this way. This number is in ms.
-  // Even though the last 3 digits representing ms and are always returned as
-  // 000 by metrotransit.org in testing, they are included as-is since it is
-  // common to express time in ms. This quantity is well below MAX_SAFE_INTEGER.
+  // other values obtained in this way. This number is in ms. Even though the
+  // last 4 digits are always returned as 0000 (i.e., resolution of 10 seconds)
+  // by metrotransit.org in testing, they are included as-is since it is common
+  // to express time in ms. This quantity is well below MAX_SAFE_INTEGER.
+  // Note that trips spanning DST changeovers (improbable) aren't handled.
   return +d.substring(6, 19);
 }
-
-// Terminology:
-//  journey: set of beginning and ending point (e.g., home to work)
-//  trip: possible sequence of legs to accomplish route
-//  leg: individual bus route
-//
-// For each Journey (e.g., home to work), there are more than one sequence of Legs (Trip) that can accomplish the Journey.
-//
-// User chooses from list of Journeys. That will initialize a Trip array with the sequence of legs.
-//
-// Trip array: with length equal to number of legs
-// 	Leg: object with the following keys:
-//     - routes: array with Metro Transit route numbers (e.g., [‘2’, ‘9’]
-//     - Begin stop ID
-//     - End stop ID
-//
-// Then, make stops array from Trip array. This will enumerate all unique stop IDs from Trip array.
-//
-// Stops array: array of all unique stops from Begin stop ID and End stop ID of trip array. Each array element ID is an object with keys stop ID (string) and routes
-//
-// Responses: from JSON returned from Metro Transit for each element of Stops array. Get following keys:
-// - Actual
-// - Departure Text
-// - Departure Time
-// - Route
-//
-// For first leg of Trip array:
-// - What is the set of the next 4 bus arrivals at Begin stop ID for this route?
-// - When will each of these reach the End stop ID? (This may require an estimate of how fast each can travel. Maybe this could estimated overall for this application as ‘next arrival > 5 minutes later)
-// For subsequent legs of Trip array:
-// - What is the set of the next 4 bus arrivals at Begin stop ID  for this route that are after the times for the End stop ID of the previous leg?
-// - When will each of these reach the End stop ID?
-//
-//
-
-// Data structure values for home to work
-/*let journey;
-let trip;
-trip[0][0] = { route  : [7],     // northbound
-               beginID: 16320,  // 27th Av & 25th St
-               endID  : 19294  // 4th Av & 3rd St
-             }
-trip[1][0] = { route  : [2, 67], // westbound
-               beginID: 56703,  // seward towers
-               endID  : 51533  // Franklin Ave Station
-             }
-trip[1][1] = { route  : [55],    // Blue Line
-               beginID: 51427,  // Franklin Ave Station
-               endID  : 51424  // Government Plaza Station
-             }
-
-// Work to home can include Green Line to 2/7
-*/
