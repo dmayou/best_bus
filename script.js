@@ -300,7 +300,7 @@ function webUpdate() {
 
   // Fetch/Promise adapted from https://stackoverflow.com/questions/46503558/how-to-use-multiple-xmlhttprequest
 
-  const url = "https://cors-anywhere.herokuapp.com/http://svc.metrotransit.org/NexTrip/";
+  const url = "https://svc.metrotransit.org/NexTrip/";
   const jsonSuffix = "?format=json";
 
   let stopUrls = Object.keys(journey.uniqueStops()).map(key => url + key + jsonSuffix);
