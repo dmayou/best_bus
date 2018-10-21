@@ -1,17 +1,10 @@
 // Metro Transit web service definitions at http://svc.metrotransit.org/
 
 'use strict';
-/**//*
-// Initialize sample trip array for 'home to work' Journey
-let trip = initTrip();
 
-
-const wait1Min = 60000;
-// const wait1Min = 15000;
-// window.setInterval(update, wait1Min); // update every minute
-update();
-
-}*//**/
+// Globval Variables
+let webData; // initialized in promise
+let journey;
 
 class Stop {
   constructor(stopId, routes) {
@@ -27,7 +20,6 @@ class Stop {
       }
     }
   }
-
   nextDeparture() {
     return {
       time : this.dep[0].depart,
@@ -101,7 +93,6 @@ class Journey {
     this.trips = [];
     this.descr = descr;
   }
-
   addTrip(obj) {
     let trip = new Trip(
       '', // description
@@ -109,11 +100,9 @@ class Journey {
     );
     this.trips.push(trip);
   }
-
   numTrips() {
     return this.trips.length;
   }
-
   uniqueStops() {
     // returns object with key for each unique stop
     let obj = {};
@@ -128,13 +117,11 @@ class Journey {
     }
     return obj;
   }
-
   update() {
     for (let trip of this.trips) {
       trip.update();
     }
   }
-
   display() {
     console.log(`For this journey ${this.descr}:`);
 
@@ -144,16 +131,18 @@ class Journey {
       let routes = this.trips[i].firstLeg.begin.routes;
       let stop = this.trips[i].firstLeg.begin.stopId;
       let time = this.trips[i].firstLeg.begin.nextDeparture();
-      console.log(`Next arrival for route ${routes} at stop
-                  ${stop} is ${time.time}.`);
+      console.log(
+        `Next arrival for route ${routes} at stop ${stop} is ${time.time}.`
+      );
       // last leg
       if (this.trips[i].hasLastLeg()) {
         let routes = this.trips[i].lastLeg.begin.routes;
         let stop = this.trips[i].lastLeg.begin.stopId;
         let time2 = this.trips[i].lastLeg.begin.nextDepartureAfterTime(
                       time.timeInMs + this.trips[i].firstLeg.dur);
-        console.log(`Next arrival for route ${routes} at stop
-                    ${stop} is ${time2.time}.`);
+        console.log(
+          `Next arrival for route ${routes} at stop ${stop} is ${time2.time}.`
+        );
       }
     }
   }
@@ -163,7 +152,7 @@ function initJourney() {
   // eventually there will be a number of journeys defined there
   // The user will press a button to choose a particular journey.
   // Right now, the Home to Work journey is hardcoded.
-  let journey = new Journey('Home to Work');
+  journey = new Journey('Home to Work');
   journey.addTrip(
     { firstLeg :
       { routes : ['7'],    // northbound
@@ -211,14 +200,12 @@ function initJourney() {
       }
     }
   );
-  return journey;
+  webUpdate();
+  const updateInterval = 40000; // milliseconds
+  window.setInterval(webUpdate, updateInterval); // update every minute
 }
 
-let webData; // initialized in promise
-let journey = initJourney();
-webUpdate(journey.uniqueStops());
-
-function webUpdate (stops) {
+function webUpdate() {
   console.log('updating', Date());
 
   // Fetch/Promise adapted from https://stackoverflow.com/questions/46503558/how-to-use-multiple-xmlhttprequest
@@ -226,12 +213,12 @@ function webUpdate (stops) {
   const url = "http://svc.metrotransit.org/NexTrip/";
   const jsonSuffix = "?format=json";
 
-  let stopUrls = Object.keys(stops).map(key => url + key + jsonSuffix);
+  let stopUrls = Object.keys(journey.uniqueStops()).map(key => url + key + jsonSuffix);
 
   Promise.all(stopUrls.map(url => fetch(url).then(resp => resp.text())))
               .then(texts =>
                 {
-                  storeRouteData(texts, stops),
+                  storeRouteData(texts, journey.uniqueStops()),
                   journey.update(),
                   journey.display();
                 }
