@@ -139,7 +139,7 @@ class Journey {
         let routes = this.trips[i].lastLeg.begin.routes;
         let stop = this.trips[i].lastLeg.begin.stopId;
         let time2 = this.trips[i].lastLeg.begin.nextDepartureAfterTime(
-                      time.timeInMs + this.trips[i].firstLeg.dur);
+                      time.timeInMs + this.trips[i].firstLeg.dur * 1000);
         console.log(
           `Next arrival for route ${routes} at stop ${stop} is ${time2.time}.`
         );
@@ -148,11 +148,34 @@ class Journey {
   }
 }
 
-function initJourney() {
+function initJourney(btn_id) {
   // eventually there will be a number of journeys defined there
   // The user will press a button to choose a particular journey.
   // Right now, the Home to Work journey is hardcoded.
-  journey = new Journey('Home to Work');
+  console.log(btn_id);
+  switch (btn_id) {
+    case 'home_to_work':
+      journey = new Journey('Home to Work');
+      initJourneyHomeToWork();
+      break;
+    case 'work_to_home':
+      journey = new Journey('Work to Home');
+      initJourneyWorkToHome();
+      break;
+    case 'home_to_uptown':
+      break;
+    case 'uptown_to_home':
+      break;
+    default:
+      console.log('error: default init condition');
+  }
+
+  webUpdate();
+  const updateInterval = 40000; // milliseconds
+  window.setInterval(webUpdate, updateInterval); // update every minute
+}
+
+function initJourneyHomeToWork() {
   journey.addTrip(
     { firstLeg :
       { routes : ['7'],    // northbound
@@ -200,9 +223,73 @@ function initJourney() {
       }
     }
   );
-  webUpdate();
-  const updateInterval = 40000; // milliseconds
-  window.setInterval(webUpdate, updateInterval); // update every minute
+}
+
+function initJourneyWorkToHome() {
+  journey.addTrip(
+    { firstLeg :
+      { routes : ['7'],    // southbound
+        beginID: '18011',  // 5th Av S & Wash
+        endID  : '16583',  // 27th Av & 24th St
+        nominalDur: 600,
+        descr : ''
+      },
+      lastLeg :
+      {
+      }
+    }
+  );
+  journey.addTrip(
+    { firstLeg :
+      { routes : ['22'], // southbound
+        beginID: '18011',  // 5th Av S & Washington
+        endID  : '40467',  // Cedar Av & Franklin Av
+        nominalDur: 600,
+        desc : ''
+      },
+      lastLeg :
+      { routes : ['2','9','67'], // eastbound
+        beginID: '51532',  // Franklin Av Station
+        endID  : '56702',  // Seward Towers (not a stop for rt 9...)
+        nominalDur: 240,
+        descr : ''
+      }
+    }
+  );
+  journey.addTrip(
+    { firstLeg :
+      { routes : ['Blue'],    // southbound
+        beginID: '51409', // Government Plaza Station
+        endID  : '51412',  // Franklin Av Station
+        nominalDur: 400,
+        desc : ''
+      },
+      lastLeg :
+      { routes : ['2','9','67'], // eastbound
+        beginID: '51532',  // Franklin Av Station
+        endID  : '56702',  // Seward Towers (not for rt 9)
+        nominalDur: 240,
+        descr : ''
+      }
+    }
+  );
+  journey.addTrip(
+    { firstLeg :
+      { routes : ['Grn'],    // eastbound
+        beginID: '51409', // Government Plaza Station
+        endID  : '56001',  // Westbank Station
+        nominalDur: 400,
+        desc : ''
+      },
+      lastLeg :
+      { routes : ['2','7'], // west/southbound
+        beginID: '42452',  // 3rd St & Cedar Av
+        endID  : '16583',  // 27th Av S & 24th St (only for 7)
+        nominalDur: 360,
+        descr : ''
+      }
+    }
+  );
 }
 
 function webUpdate() {
