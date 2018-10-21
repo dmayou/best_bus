@@ -47,6 +47,13 @@ class Leg {
     this.dur = nominalDuration; // low estimate of travel duration in seconds
     this.descr = descr;
   }
+  arrivalTime() { // returns estimated arrival time at endID for next departure
+                  // from beginID. Subject to some error on multiple-route legs
+                  // because the specific route is not checked.
+    return this.end.nextDepartureAfterTime(
+      this.begin.nextDeparture().timeInMs + this.dur * 1000
+    );
+  }
   update() {
     this.begin.update();
     this.end.update();
@@ -107,7 +114,6 @@ class Journey {
     // returns object with key for each unique stop
     let obj = {};
     for (let trip of this.trips) {
-      // if (trip.firstLeg.dur != undefined) { // is this leg not blank?
       obj[trip.firstLeg.begin.stopId] = [];
       obj[trip.firstLeg.end.stopId] = [];
       if (trip.hasLastLeg()) {
@@ -128,24 +134,21 @@ class Journey {
 
     for (let i=0; i<this.numTrips(); i++) {
       // first leg
-      // console.log(`Trip ${i}:`);
       output += `Trip ${i}:<br>`;
       let routes = this.trips[i].firstLeg.begin.routes;
       let stop = this.trips[i].firstLeg.begin.stopId;
       let time = this.trips[i].firstLeg.begin.nextDeparture();
-      // console.log(
       output +=
-        `Next arrival for route ${routes} at stop ${stop} is ${time.time}.<br>`;
-      // );
+        `Next arrival for route ${routes} at stop ${stop} is ${time.time}.<br>`;      // );
       // last leg
       if (this.trips[i].hasLastLeg()) {
-        let routes = this.trips[i].lastLeg.begin.routes;
-        let stop = this.trips[i].lastLeg.begin.stopId;
+        let routes2 = this.trips[i].lastLeg.begin.routes;
+        let stop2 = this.trips[i].lastLeg.begin.stopId;
         let time2 = this.trips[i].lastLeg.begin.nextDepartureAfterTime(
-                      time.timeInMs + this.trips[i].firstLeg.dur * 1000);
-        // console.log(
+          this.trips[i].firstLeg.arrivalTime().timeInMs
+        );
         output +=
-          `Next arrival for route ${routes} at stop ${stop} is ${time2.time}.<br>`;
+          `Next arrival for route ${routes2} at stop ${stop2} is ${time2.time}.<br>`;
         // );
         document.getElementById('output').innerHTML = output;
       }
@@ -197,7 +200,7 @@ function initJourneyHomeToWork() {
       { routes : ['2', '67'], // westbound
         beginID: '56703',  // seward towers
         endID  : '51533',  // Franklin Ave Station
-        nominalDur: 240,
+        nominalDur: 150,
         desc : ''
       },
       lastLeg :
@@ -214,7 +217,7 @@ function initJourneyHomeToWork() {
       { routes : ['2'],    // eastbound
         beginID: '13261', // seward towers
         endID  : '13221',  // Wash & Cedar
-        nominalDur: 400,
+        nominalDur: 300,
         desc : ''
       },
       lastLeg :
@@ -311,6 +314,7 @@ function webUpdate() {
                   storeRouteData(texts, journey.uniqueStops()),
                   journey.update(),
                   journey.display();
+                  // checkDateTimeFormat();
                 }
             );
 
@@ -354,3 +358,17 @@ function metroTransitDateToNum(d) {
   // Note that trips spanning DST changeovers (improbable) aren't handled.
   return +d.substring(6, 19);
 }
+
+// function checkDateTimeFormat() {
+//   // While testing on 10/21/18, times for LRT Blue Line appeared 12 minutes of
+//   // from bus times. Two hours later, times between stops were aligned.
+//   for (let key in webData) {
+//     for (let i in webData[key]) {
+//       console.log(
+//         key,
+//         webData[key][i].depart,
+//         (webData[key][i].departTime - 1540137000000) / 60000
+//       );
+//     }
+//   }
+// }
