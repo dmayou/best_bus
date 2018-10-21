@@ -123,35 +123,38 @@ class Journey {
     }
   }
   display() {
+    let output = '';
     console.log(`For this journey ${this.descr}:`);
 
     for (let i=0; i<this.numTrips(); i++) {
       // first leg
-      console.log(`Trip ${i}:`);
+      // console.log(`Trip ${i}:`);
+      output += `Trip ${i}:<br>`;
       let routes = this.trips[i].firstLeg.begin.routes;
       let stop = this.trips[i].firstLeg.begin.stopId;
       let time = this.trips[i].firstLeg.begin.nextDeparture();
-      console.log(
-        `Next arrival for route ${routes} at stop ${stop} is ${time.time}.`
-      );
+      // console.log(
+      output +=
+        `Next arrival for route ${routes} at stop ${stop} is ${time.time}.<br>`;
+      // );
       // last leg
       if (this.trips[i].hasLastLeg()) {
         let routes = this.trips[i].lastLeg.begin.routes;
         let stop = this.trips[i].lastLeg.begin.stopId;
         let time2 = this.trips[i].lastLeg.begin.nextDepartureAfterTime(
                       time.timeInMs + this.trips[i].firstLeg.dur * 1000);
-        console.log(
-          `Next arrival for route ${routes} at stop ${stop} is ${time2.time}.`
-        );
+        // console.log(
+        output +=
+          `Next arrival for route ${routes} at stop ${stop} is ${time2.time}.<br>`;
+        // );
+        document.getElementById('output').innerHTML = output;
       }
     }
   }
 }
 
 function initJourney(btn_id) {
-  // eventually there will be a number of journeys defined there
-  // The user will press a button to choose a particular journey.
-  // Right now, the Home to Work journey is hardcoded.
+  // Initialize Journey based on which button was pressed
   console.log(btn_id);
   switch (btn_id) {
     case 'home_to_work':
@@ -170,9 +173,9 @@ function initJourney(btn_id) {
       console.log('error: default init condition');
   }
 
-  webUpdate();
+  webUpdate(); // initial display
   const updateInterval = 40000; // milliseconds
-  window.setInterval(webUpdate, updateInterval); // update every minute
+  window.setInterval(webUpdate, updateInterval); // update every time interval
 }
 
 function initJourneyHomeToWork() {
@@ -297,7 +300,7 @@ function webUpdate() {
 
   // Fetch/Promise adapted from https://stackoverflow.com/questions/46503558/how-to-use-multiple-xmlhttprequest
 
-  const url = "http://svc.metrotransit.org/NexTrip/";
+  const url = "https://cors-anywhere.herokuapp.com/http://svc.metrotransit.org/NexTrip/";
   const jsonSuffix = "?format=json";
 
   let stopUrls = Object.keys(journey.uniqueStops()).map(key => url + key + jsonSuffix);
