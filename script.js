@@ -1,27 +1,14 @@
 // Metro Transit web service definitions at http://svc.metrotransit.org/
 
 'use strict';
-let startTime;
-const displayInterval = 5000; // milliseconds
-const updateInterval = 8 * displayInterval;
-
-function secondsSinceStart() {
-  let elapsedTime = ((new Date).getTime() - startTime) / 1000;
-  let timeToRefresh = updateInterval/1000 - Math.floor(elapsedTime);
-  if  (timeToRefresh < 0.01) {
-    document.getElementById('countdown').innerHTML = `refreshing`;
-    startTime = (new Date).getTime();
-    webUpdate();
-  } else {
-    document.getElementById('countdown').innerHTML =
-      `${timeToRefresh} secs to refresh`;
-  }
-}
-
 // Global Variables
 let webData; // initialized in promise
 let journey;
+let startTime;
+const displayInterval = 5000; // milliseconds
+const updateInterval = 10 * displayInterval;
 
+// Class definitions
 class Stop {
   constructor(stopId, routes) {
     this.stopId = stopId; // Metro Transit Stop ID
@@ -172,6 +159,7 @@ class Journey {
   }
 }
 
+// Function definitions
 function initJourney(btn_id) {
   // Initialize Journey based on which button was pressed
   console.log(btn_id);
@@ -195,6 +183,19 @@ function initJourney(btn_id) {
   webUpdate(); // initial display
   startTime = new Date();
   window.setInterval(secondsSinceStart, displayInterval);
+}
+
+function secondsSinceStart() {
+  let elapsedTime = ((new Date).getTime() - startTime) / 1000;
+  let timeToRefresh = updateInterval/1000 - Math.floor(elapsedTime);
+  if  (timeToRefresh < 0.01) {
+    document.getElementById('countdown').innerHTML = `refreshing`;
+    startTime = (new Date).getTime();
+    webUpdate();
+  } else {
+    document.getElementById('countdown').innerHTML =
+      `${timeToRefresh} secs to refresh`;
+  }
 }
 
 function initJourneyHomeToWork() {

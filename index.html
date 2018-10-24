@@ -3,16 +3,19 @@
   <head>
     <meta charset="utf-8">
     <title>Best Bus To Take</title>
+    <link rel="stylesheet" href="style.css">
     <script src="script.js" charset="utf-8"></script>
   </head>
   <body>
-      <button id="home_to_work" onclick="initJourney(this.id)" >Home To Work</button>
-      <button id="work_to_home" onclick="initJourney(this.id)" >Work To Home</button>
+      <button class="journey_btn" id="home_to_work"
+                    onclick="initJourney(this.id)" >Home To Work</button>
+      <button class="journey_btn" id="work_to_home"
+                    onclick="initJourney(this.id)" >Work To Home</button>
       <!-- <button id="home_to_uptown" onclick="initJourney(this.id)" >Home To Uptown</button>
       <button id="uptown_to_home" onclick="initJourney(this.id)" >Uptown To Home</button>
       <button id="home_to_airport" onclick="initJourney(this.id)" >Home To Airport</button>
       <button id="airport_to_home" onclick="initJourney(this.id)" >Airport To Home</button> -->
-      <div id="countdown"></div>
-      <div id="output"></div>
+      <div class="text" id="countdown"></div>
+      <div class="text" id="output"></div>
   </body>
 </html>
