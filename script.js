@@ -132,16 +132,14 @@ class Journey {
     }
   }
   display() {
-    let output = '';
-    console.log(`For this journey ${this.descr}:`);
+    let output = (`Journey ${this.descr}:`);
 
     for (let i=0; i<this.numTrips(); i++) {
       // first leg
-      output += `Trip ${i}:<br>`;
       let routes = this.trips[i].firstLeg.begin.routes;
       let stop = this.trips[i].firstLeg.begin.stopId;
       let time = this.trips[i].firstLeg.begin.nextDeparture();
-      output +=
+      output += '<br>' +
         `Next arrival for route ${routes} at stop ${stop} is ${time.time}.<br>`;      // );
       // last leg
       if (this.trips[i].hasLastLeg()) {
@@ -152,8 +150,8 @@ class Journey {
         );
         output +=
           `Next arrival for route ${routes2} at stop ${stop2} is ${time2.time}.<br>`;
-        // );
         document.getElementById('output').innerHTML = output;
+        document.getElementById('countdown').innerHTML = '';
       }
     }
   }

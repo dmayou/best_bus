@@ -13,5 +13,6 @@
   text-align:left;
   font-family:Verdana;
 	font-size:15px;
-  padding:9px 23px;
+  min-height:18px;
+  padding:9px 23px 0px 23px;
 }
