@@ -140,7 +140,7 @@ class Journey {
       let stop = this.trips[i].firstLeg.begin.stopId;
       let time = this.trips[i].firstLeg.begin.nextDeparture();
       output += '<br>' +
-        `Next arrival for route ${routes} at stop ${stop} is ${time.time}.<br>`;      // );
+        `Next arrival for route ${routes} at stop ${stop} is ${time.time}.<br>`;
       // last leg
       if (this.trips[i].hasLastLeg()) {
         let routes2 = this.trips[i].lastLeg.begin.routes;
@@ -241,6 +241,19 @@ function initJourneyHomeToWork() {
         endID  : '51424',  // Government Plaza Station
         nominalDur: 240,
         descr : ''
+      }
+    }
+  );
+  journey.addTrip(
+    { firstLeg :
+      { routes : ['Blue'],    // northbound
+        beginID: '51427',  // 27th Av & 25th St
+        endID  : '51424',  // 4th Av & 3rd St
+        nominalDur: 360,
+        descr : ''
+      },
+      lastLeg :
+      {
       }
     }
   );
