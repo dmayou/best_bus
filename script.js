@@ -5,6 +5,7 @@
 let webData; // initialized in promise
 let journey;
 let startTime;
+let refreshUpdate;
 const displayInterval = 5000; // milliseconds
 const updateInterval = 10 * displayInterval;
 
@@ -134,7 +135,7 @@ class Journey {
   display() {
     let output = (`Journey ${this.descr}:`);
 
-    for (let i=0; i<this.numTrips(); i++) {
+    for (let i=0, len=this.numTrips(); i<len; i++) {
       // first leg
       let routes = this.trips[i].firstLeg.begin.routes;
       let stop = this.trips[i].firstLeg.begin.stopId;
@@ -150,15 +151,18 @@ class Journey {
         );
         output +=
           `Next arrival for route ${routes2} at stop ${stop2} is ${time2.time}.<br>`;
-        document.getElementById('output').innerHTML = output;
-        document.getElementById('countdown').innerHTML = '';
       }
     }
+    document.getElementById('output').innerHTML = output;
+    document.getElementById('countdown').innerHTML = '';
   }
 }
 
 // Function definitions
 function initJourney(btn_id) {
+  if (refreshUpdate != undefined) {
+    window.clearInterval(refreshUpdate); // avoid having multiple listeners if another btn pressed
+  }
   // Initialize Journey based on which button was pressed
   console.log(btn_id);
   switch (btn_id) {
@@ -180,7 +184,7 @@ function initJourney(btn_id) {
 
   webUpdate(); // initial display
   startTime = new Date();
-  window.setInterval(secondsSinceStart, displayInterval);
+  refreshUpdate = window.setInterval(secondsSinceStart, displayInterval);
 }
 
 function secondsSinceStart() {
