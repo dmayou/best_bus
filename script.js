@@ -8,6 +8,8 @@ let startTime;
 let refreshUpdate;
 const displayInterval = 5000; // milliseconds
 const updateInterval = 10 * displayInterval;
+let refreshCnt = 0;
+const maxRefresh = 5;
 
 // Class definitions
 class Stop {
@@ -160,9 +162,7 @@ class Journey {
 
 // Function definitions
 function initJourney(btn_id) {
-  if (refreshUpdate != undefined) {
-    window.clearInterval(refreshUpdate); // avoid having multiple listeners if another btn pressed
-  }
+  resetUpdate();
   // Initialize Journey based on which button was pressed
   console.log(btn_id);
   switch (btn_id) {
@@ -184,6 +184,7 @@ function initJourney(btn_id) {
 
   webUpdate(); // initial display
   startTime = new Date();
+  refreshCnt = 0;
   refreshUpdate = window.setInterval(secondsSinceStart, displayInterval);
 }
 
@@ -191,13 +192,26 @@ function secondsSinceStart() {
   let elapsedTime = ((new Date).getTime() - startTime) / 1000;
   let timeToRefresh = updateInterval/1000 - Math.floor(elapsedTime);
   if  (timeToRefresh < 0.01) {
-    document.getElementById('countdown').innerHTML = `refreshing`;
-    startTime = (new Date).getTime();
-    webUpdate();
+    if (++refreshCnt > maxRefresh) {
+      resetUpdate();
+    } else {
+      document.getElementById('countdown').innerHTML = `refreshing`;
+      startTime = (new Date).getTime();
+      webUpdate();
+    }
   } else {
     document.getElementById('countdown').innerHTML =
       `${timeToRefresh} secs to refresh`;
   }
+}
+
+function resetUpdate() {
+  if (refreshUpdate != undefined) {
+    window.clearInterval(refreshUpdate);
+  }
+  document.getElementById('countdown').innerHTML = '';
+  document.getElementById('output').innerHTML = '';
+
 }
 
 function initJourneyHomeToWork() {
