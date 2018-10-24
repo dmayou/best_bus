@@ -1,8 +1,24 @@
 // Metro Transit web service definitions at http://svc.metrotransit.org/
 
 'use strict';
+let startTime;
+const displayInterval = 5000; // milliseconds
+const updateInterval = 8 * displayInterval;
 
-// Globval Variables
+function secondsSinceStart() {
+  let elapsedTime = ((new Date).getTime() - startTime) / 1000;
+  let timeToRefresh = updateInterval/1000 - Math.floor(elapsedTime);
+  if  (timeToRefresh < 0.01) {
+    document.getElementById('countdown').innerHTML = `refreshing`;
+    startTime = (new Date).getTime();
+    webUpdate();
+  } else {
+    document.getElementById('countdown').innerHTML =
+      `${timeToRefresh} secs to refresh`;
+  }
+}
+
+// Global Variables
 let webData; // initialized in promise
 let journey;
 
@@ -177,8 +193,8 @@ function initJourney(btn_id) {
   }
 
   webUpdate(); // initial display
-  const updateInterval = 40000; // milliseconds
-  window.setInterval(webUpdate, updateInterval); // update every time interval
+  startTime = new Date();
+  window.setInterval(secondsSinceStart, displayInterval);
 }
 
 function initJourneyHomeToWork() {
