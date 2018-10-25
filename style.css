@@ -6,14 +6,30 @@
 	color:#ffffff;
 	font-family:Verdana;
 	/* font-size:36px; */
-  font-size: 3vw;
+  font-size:3vw;
+	padding:9px 23px;
+}
+
+.input_field {
+  background-color:white;
+  border-radius:3px;
+	border:1px solid #0b0e07;
+	display:inline-block;
+	color:black;
+	font-family:Verdana;
+  font-size:3vw;
 	padding:9px 23px;
 }
 
 @media screen and (max-width: 1500px) {
   {
     .journey_btn {
-      font-size: 14vw;
+      font-size:14vw;
+      margin-right:1em;
+    }
+    .input_field {
+      font-size:14vw;
+      margin-right:1em;
     }
   }
 }

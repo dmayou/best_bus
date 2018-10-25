@@ -9,7 +9,7 @@ let refreshUpdate;
 const displayInterval = 5000; // milliseconds
 const updateInterval = 10 * displayInterval;
 let refreshCnt = 0;
-const maxRefresh = 5;
+const maxRefresh = 8;
 
 // Class definitions
 class Stop {
@@ -211,7 +211,6 @@ function resetUpdate() {
   }
   document.getElementById('countdown').innerHTML = '';
   document.getElementById('output').innerHTML = '';
-
 }
 
 function initJourneyHomeToWork() {
@@ -344,6 +343,32 @@ function initJourneyWorkToHome() {
   );
 }
 
+function enterStop() {
+  resetUpdate();
+  let stop = document.getElementById('route').value;
+  if (stop < 10000 || route > 99999) {
+    alert('Enter a valid stop');
+    return;
+  }
+  let url = "https://svc.metrotransit.org/NexTrip/" + stop + "?format=json";
+  fetch(url).then(resp => resp.text())
+            .catch(err => console.log(err))
+            .then(text => displayStop(JSON.parse(text)));
+}
+
+function displayStop(data) {
+  console.log(data);
+  let output = '';
+  for (let i=0; i<data.length; i++) {
+    output += `Route ${data[i].Route}:` + '&nbsp&nbsp&nbsp&nbsp' + data[i].DepartureText + '<br>';
+  }
+  if (output === '') {
+    output = 'No data. Check stop number.'
+  }
+  output += '(Refresh: press Enter Stop)';
+  document.getElementById('output').innerHTML = output;
+}
+
 function webUpdate() {
   console.log('updating', Date());
 
@@ -362,8 +387,7 @@ function webUpdate() {
                   journey.display();
                   // checkDateTimeFormat();
                 }
-            );
-
+              );
 }
 
 function storeRouteData(resp, arr) {
@@ -378,14 +402,11 @@ function storeRouteData(resp, arr) {
   for (let stop in arr) {
     let departures = JSON.parse(resp[i]); // array of departures for a given stop
     for (let j=0; j<departures.length; j++) { // index of individual arrival at stop
-      // if (arr[stop]['routes'].indexOf(arrivals[j].Route) != -1) { // if arrival is for a route we are using
         arr[stop][j] = {}; // empty object to allow adding keys
         arr[stop][j].actual = departures[j].Actual; // true if actual time based on GPS data
         arr[stop][j].depart = departures[j].DepartureText;
         arr[stop][j].departTime = metroTransitDateToNum(departures[j].DepartureTime);
         arr[stop][j].route = departures[j].Route;
-        // k++;
-      // }
     }
     i++;
   }
@@ -413,7 +434,7 @@ function metroTransitDateToNum(d) {
 //       console.log(
 //         key,
 //         webData[key][i].depart,
-//         (webData[key][i].departTime - 1540137000000) / 60000
+//         (webData[key][i].departTime - 1540435000000) / 60000
 //       );
 //     }
 //   }
