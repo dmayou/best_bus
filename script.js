@@ -363,9 +363,8 @@ function enterStop() {
 }
 
 function displayStop(data) {
-  console.log(data);
   let output = '';
-  for (let i=0; i<data.length; i++) {
+  for (let i=0; i<Math.min(10, data.length); i++) {
     output += `Route ${data[i].Route}:` + '&nbsp&nbsp&nbsp&nbsp' + data[i].DepartureText + '<br>';
   }
   if (output === '') {
