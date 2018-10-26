@@ -34,6 +34,9 @@ class Stop {
   }
   nextDepartureAfterTime(time) {
     // time in ms
+    if (time == null) {
+      return null;
+    }
     for (let i=0; i<webData[this.stopId].length; i++) {
       if (webData[this.stopId][i].departTime > time) {
         return {
@@ -42,7 +45,10 @@ class Stop {
         }
       }
     }
-    return null;
+    return {
+      time : null,
+      timeInMs : null
+    };
   }
 }
 
@@ -161,11 +167,11 @@ class Journey {
 }
 
 // Function definitions
-function initJourney(btn_id) {
+function initJourney(btnId) {
   resetUpdate();
   // Initialize Journey based on which button was pressed
-  console.log(btn_id);
-  switch (btn_id) {
+  console.log(btnId);
+  switch (btnId) {
     case 'home_to_work':
       journey = new Journey('Home to Work');
       initJourneyHomeToWork();
