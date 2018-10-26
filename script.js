@@ -370,7 +370,7 @@ function displayStop(data) {
   if (output === '') {
     output = 'No data. Check stop number.'
   }
-  output += '(Refresh: press Enter Stop)';
+  document.getElementById('countdown').innerHTML = '(Refresh: press Enter Stop)';
   document.getElementById('output').innerHTML = output;
 }
 
