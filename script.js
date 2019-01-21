@@ -382,17 +382,18 @@ function webUpdate() {
   const url = "https://svc.metrotransit.org/NexTrip/";
   const jsonSuffix = "?format=json";
 
-  let stopUrls = Object.keys(journey.uniqueStops()).map(key => url + key + jsonSuffix);
+  const stopUrls = Object.keys(journey.uniqueStops()).map(key => url + key + jsonSuffix);
 
-  Promise.all(stopUrls.map(url => fetch(url).then(resp => resp.text())))
-              .then(texts =>
-                {
-                  storeRouteData(texts, journey.uniqueStops()),
-                  journey.update(),
-                  journey.display();
-                  // checkDateTimeFormat();
-                }
-              );
+  Promise.all(stopUrls.map(url => fetch(url)
+      .then(resp => resp.text())))
+      .then(texts =>
+        {
+          storeRouteData(texts, journey.uniqueStops()),
+          journey.update(),
+          journey.display();
+          // checkDateTimeFormat(); // detect potential misalignment of bus and lrt timestamps
+        }
+      );
 }
 
 function storeRouteData(resp, arr) {
