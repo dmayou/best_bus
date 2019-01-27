@@ -31,7 +31,8 @@
 .timeline_out {
   display: flex;
   align-items: center;
-  font-size:1em;
+  font-size:0.7em;
+  font-family:Verdana;
 }
 .dropButton {
   font-size:1em;
@@ -64,15 +65,15 @@
 }
 @media screen and (max-width: 600px) {
   .journey_btn {
-    font-size:2em;
+    font-size:1.1em;
     padding:20px;
   }
   .input_field {
-    font-size:2em;
+    font-size:1.1em;
     padding:20px;
     width: 5em;
   }
   .text {
-    font-size:2em;
+    font-size:1.1em;
   }
 }
