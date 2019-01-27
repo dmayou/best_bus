@@ -142,54 +142,72 @@ class Journey {
   }
   display(verbose = true) {
     let output = (`Journey ${this.descr}:`);
-
+    let trip = {};
     for (let i=0, len=this.numTrips(); i<len; i++) {
       // first leg
-      let routes = this.trips[i].firstLeg.begin.routes;
-      let stop = this.trips[i].firstLeg.begin.stopId;
-      let time = this.trips[i].firstLeg.begin.nextDeparture();
+      trip.routes = this.trips[i].firstLeg.begin.routes;
+      trip.stop = this.trips[i].firstLeg.begin.stopId;
+      trip.time = this.trips[i].firstLeg.begin.nextDeparture();
       if (verbose) {
         output += '<br>' +
-          `Next arrival for route ${routes} at stop ${stop} is ${time.time}.<br>`;
+          `Next arrival for route ${trip.routes} at stop ${trip.stop} is ${trip.time.time}.<br>`;
+      } else {
+        
       }
       // last leg
       if (this.trips[i].hasLastLeg()) {
-        let routes2 = this.trips[i].lastLeg.begin.routes;
-        let stop2 = this.trips[i].lastLeg.begin.stopId;
-        let time2 = this.trips[i].lastLeg.begin.nextDepartureAfterTime(
+        trip.routes2 = this.trips[i].lastLeg.begin.routes;
+        trip.stop2 = this.trips[i].lastLeg.begin.stopId;
+        trip.time2 = this.trips[i].lastLeg.begin.nextDepartureAfterTime(
           this.trips[i].firstLeg.arrivalTime().timeInMs
         );
         if (verbose) {
           output +=
-            `Next arrival for route ${routes2} at stop ${stop2} is ${time2.time}.<br>`;
+            `Next arrival for route ${trip.routes2} at stop ${trip.stop2} is ${trip.time2.time}.<br>`;
+        } else {
+
         }
       }
     }
-    this.outputToDom(output);
+    if (verbose) {
+      this.outputToDom(output);
+    } else {
+      document.getElementById("diagram").appendChild(firstLeg);
+    }
   }
-  // displayDiagram() {
-  //   let output = (`Journey ${this.descr}:`);
+  makeDiagram() {
+    let firstLeg = document.createElement("div")
+    firstLeg.className = 'timeline_out';
+    let newEl = document.createElement("div");
+    newEl.className = 'spacer';
+    newEl.innerHTML = 'x'; // must have a value in order to be rendered with non-zero width
+    firstLeg.appendChild(newEl);
+    newEl = document.createElement("span");
+    newEl.className = 'blankTime';
+    newEl.innerHTML = time.time;
+    firstLeg.appendChild(newEl);
+    newEl = document.createElement("div");
+    newEl.className = 'route_div';
+    newEl.innerHTML = routes;
+    firstLeg.appendChild(newEl);
+    newEl = document.createElement("span");
+    newEl.className = 'blankTime';
+    newEl.innerHTML = time2.time;
+    firstLeg.appendChild(newEl);
+    newEl = document.createElement("div");
+    newEl.className = 'route_div';
+    newEl.innerHTML = routes2;
+    firstLeg.appendChild(newEl);
 
-  //   for (let i = 0, len = this.numTrips(); i < len; i++) {
-  //     // first leg
-  //     let routes = this.trips[i].firstLeg.begin.routes;
-  //     let stop = this.trips[i].firstLeg.begin.stopId;
-  //     let time = this.trips[i].firstLeg.begin.nextDeparture();
-  //     output += '<br>' +
-  //       `Next arrival for route ${routes} at stop ${stop} is ${time.time}.<br>`;
-  //     // last leg
-  //     if (this.trips[i].hasLastLeg()) {
-  //       let routes2 = this.trips[i].lastLeg.begin.routes;
-  //       let stop2 = this.trips[i].lastLeg.begin.stopId;
-  //       let time2 = this.trips[i].lastLeg.begin.nextDepartureAfterTime(
-  //         this.trips[i].firstLeg.arrivalTime().timeInMs
-  //       );
-  //       output +=
-  //         `Next arrival for route ${routes2} at stop ${stop2} is ${time2.time}.<br>`;
-  //     }
-  //   }
-  //   this.outputToDom(output);
-  // }
+          // <hr />
+          // <div class="timeline_out">
+          //   <div class="spacer">x</div>
+          //   <span class="blankTime">20 min</span>
+          //   <div class="route_div">7</div>
+          //   <span class="blankTime">10:43</span>
+          //   <div class="route_div">9</div>
+          // </div>
+  }
   outputToDom(output) {
     document.getElementById('output').innerHTML = output;
     document.getElementById('countdown').innerHTML = '';
