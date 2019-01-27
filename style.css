@@ -1,69 +1,62 @@
 .container {
-  height: 2560px;
-  width: 1440px;
-  padding: 1px;
-  border: 1px;
+  padding: 5px;
+  border: 5px;
   border-color: red;
 }
-
 .journey_btn {
   background-color:#2dabf9;
 	border-radius:3px;
 	border:1px solid #0b0e07;
-	display:inline-block;
+	white-space: normal;
 	color:#ffffff;
 	font-family:Verdana;
-	/* font-size:36px; */
-  font-size:3vw;
+  font-size:2vw;
+  margin: 5px auto;
 	padding:9px 23px;
 }
-
 .input_field {
+  display:inline;
   background-color:white;
   border-radius:3px;
 	border:1px solid #0b0e07;
 	display:inline-block;
 	color:black;
 	font-family:Verdana;
-  font-size:3vw;
+  font-size:2vw;
 	padding:9px 23px;
 }
-
 .timeline_out {
   display: flex;
-  align-items: flex-start;
-  /* justify-content: space-between; */
 }
-
 .spcr_div {
   height: .3em;
   width: 280px;
   background-color: darkgray;
 }
-
 .spcr_txt {
   height: .3em;
   width: 75px;
   background-color: white;
 }
-
-@media screen and (max-width: 1500px) {
-  {
-    .journey_btn {
-      font-size:14vw;
-      margin-right:1em;
-    }
-    .input_field {
-      font-size:14vw;
-      margin-right:1em;
-    }
-  }
-}
-
 .text {
   text-align:left;
   font-family:Verdana;
 	font-size:15px;
   min-height:18px;
   padding:9px 23px 0px 23px;
+}
+@media screen and (max-width: 600px) {
+  .journey_btn {
+    font-size:2em;
+    padding:20px;
+    background-color:#2dab00;
+  }
+  .input_field {
+    font-size:2em;
+    padding:20px;
+    width: 5em;
+  }
+  .text {
+    font-size:2em;
+  }
 }

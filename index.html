@@ -2,40 +2,43 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Best Bus To Take</title>
     <link rel="stylesheet" href="style.css">
     <script src="script.js" charset="utf-8"></script>
   </head>
   <body>
-    <div class="container">
+    <!-- <div class="container"> -->
       <div id="buttonDiv">
         <button class="journey_btn" id="home_to_work"
-                      onclick="initJourney(this.id)" >Home To Work</button>
+                onclick="initJourney(this.id)" >Home To Work</button>
         <button class="journey_btn" id="work_to_home"
-                      onclick="initJourney(this.id)" >Work To Home</button>
+                onclick="initJourney(this.id)" >Work To Home</button>
 
         <!-- <button id="home_to_uptown" onclick="initJourney(this.id)" >Home To Uptown</button>
         <button id="uptown_to_home" onclick="initJourney(this.id)" >Uptown To Home</button>
         <button id="home_to_airport" onclick="initJourney(this.id)" >Home To Airport</button>
         <button id="airport_to_home" onclick="initJourney(this.id)" >Airport To Home</button> -->
-
-        <button class="journey_btn" id="enter_stop"
-                      onclick="enterStop()" >Enter Stop</button>
-        <input class="input_field" type="number" id="route" placeholder="Stop #" min="10000" max="99999">
+        <div class="stopInput">
+          <button class="journey_btn" id="enter_stop"
+                  onclick="enterStop()" >Check Stop</button>
+          <input  class="input_field" type="number" id="route" 
+                  placeholder="Enter #" min="10000" max="99999">
+        </div>
       </div>
       <div id="outputDiv">
         <div class="text" id="countdown"></div>
         <div class="text" id="output"></div>
-          <!-- test for two-leg output layout -->
+          <!-- test for two-leg output layout
           <div class="timeline_out">
             <button class="dropButton">D</button>
             <span id="timeLeg1">10 min</span>
             <div class="spcr_div" id="spcrLeg1"></div>
             <span id="timeLeg2">10:43</span>
             <div class="spcr_div" id="spcrLeg2"></div>
-          </div>
+          </div> -->
         </div>
       </div>
-    </div>
+    <!-- </div> -->
   </body>
 </html>
