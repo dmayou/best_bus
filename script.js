@@ -140,28 +140,66 @@ class Journey {
       trip.update();
     }
   }
-  display() {
-    let output = (`Journey ${this.descr}:`);
-
-    for (let i=0, len=this.numTrips(); i<len; i++) {
-      // first leg
-      let routes = this.trips[i].firstLeg.begin.routes;
-      let stop = this.trips[i].firstLeg.begin.stopId;
-      let time = this.trips[i].firstLeg.begin.nextDeparture();
-      output += '<br>' +
-        `Next arrival for route ${routes} at stop ${stop} is ${time.time}.<br>`;
-      // last leg
-      if (this.trips[i].hasLastLeg()) {
-        let routes2 = this.trips[i].lastLeg.begin.routes;
-        let stop2 = this.trips[i].lastLeg.begin.stopId;
-        let time2 = this.trips[i].lastLeg.begin.nextDepartureAfterTime(
-          this.trips[i].firstLeg.arrivalTime().timeInMs
-        );
+  display(verbose = false) {
+    let output = `Journey ${this.descr}:<br/>`; // displays Journey and perhaps verbose output
+    let diagram = ''; // HTML for diagrams representing Trips in the Journey
+    // this breaks encapsulation. Should be refactored so that the Trip
+    // and/or Leg objects calculate and return firstLeg, lastLeg, and their HTML
+    let firstLeg = {};
+    let lastLeg = {};
+    for (let trip of this.trips) {
+      firstLeg = {
+        routes: trip.firstLeg.begin.routes,
+        stop: trip.firstLeg.begin.stopId,
+        time: trip.firstLeg.begin.nextDeparture(),
+      }
+      lastLeg = (trip.hasLastLeg() &&
+        {
+          routes: trip.lastLeg.begin.routes,
+          stop: trip.lastLeg.begin.stopId,
+          time: trip.lastLeg.begin.nextDepartureAfterTime(
+                  trip.firstLeg.arrivalTime().timeInMs
+                ),
+        }
+      );
+      if (verbose) {
         output +=
-          `Next arrival for route ${routes2} at stop ${stop2} is ${time2.time}.<br>`;
+          this.stringVerbose(firstLeg)
+          + this.stringVerbose(lastLeg) +'<br/>';
+      } else {
+        diagram += this.diagramHTML(firstLeg, lastLeg);
       }
     }
-    document.getElementById('output').innerHTML = output;
+    this.outputToDom('output', output);
+    this.outputToDom('diagram', diagram);
+  }
+  stringVerbose(leg) {
+    return leg ? `Next arrival for route ${leg.routes} at stop ${leg.stop} is ${leg.time.time}.<br>` : '';
+  }
+  diagramHTML(firstLeg, lastLeg) {
+    return `
+          <div class="timeline_out">
+            <div class="spacer">x</div>
+            <span class="blankTime">${firstLeg.time.time}</span>
+            <div class="route_div">${firstLeg.routes}</div>
+            ${lastLeg ?
+            `<span class="blankTime">${lastLeg.time.time}</span>
+            <div class="route_div">${lastLeg.routes}</div>` : ''
+            }
+          </div>
+          <div class="timeline_out">
+            <button class="dropButton">D</button>
+            <span id="timeLeg1" class="legTime">${firstLeg.time.time}</span>
+            <div class="spcr_div" id="spcrLeg1"></div>
+            ${lastLeg ?
+            `<span id="timeLeg1" class="legTime">${lastLeg.time.time}</span>
+            <div class="spcr_div" id="spcrLeg2"></div>` : ''
+            }
+          </div>
+          <hr/>`;
+  }
+  outputToDom(target, output) {
+    document.getElementById(target).innerHTML = output;
     document.getElementById('countdown').innerHTML = '';
   }
 }
@@ -370,14 +408,12 @@ function displayStop(data) {
   if (output === '') {
     output = 'No data. Check stop number.'
   }
-  document.getElementById('countdown').innerHTML = '(Refresh: press Enter Stop)';
+  document.getElementById('countdown').innerHTML = '(Refresh: press Check Stop)';
   document.getElementById('output').innerHTML = output;
 }
 
 function webUpdate() {
   console.log('updating', Date());
-
-  // Fetch/Promise adapted from https://stackoverflow.com/questions/46503558/how-to-use-multiple-xmlhttprequest
 
   const url = "https://svc.metrotransit.org/NexTrip/";
   const jsonSuffix = "?format=json";
