@@ -370,14 +370,12 @@ function displayStop(data) {
   if (output === '') {
     output = 'No data. Check stop number.'
   }
-  document.getElementById('countdown').innerHTML = '(Refresh: press Enter Stop)';
+  document.getElementById('countdown').innerHTML = '(Refresh: press Check Stop)';
   document.getElementById('output').innerHTML = output;
 }
 
 function webUpdate() {
   console.log('updating', Date());
-
-  // Fetch/Promise adapted from https://stackoverflow.com/questions/46503558/how-to-use-multiple-xmlhttprequest
 
   const url = "https://svc.metrotransit.org/NexTrip/";
   const jsonSuffix = "?format=json";

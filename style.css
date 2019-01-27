@@ -1,8 +1,3 @@
-.container {
-  padding: 5px;
-  border: 5px;
-  border-color: red;
-}
 .journey_btn {
   background-color:#2dabf9;
 	border-radius:3px;
@@ -25,18 +20,37 @@
   font-size:2vw;
 	padding:9px 23px;
 }
+.legTime {
+  font-size: 1.5em;
+  text-align: center;
+  min-width:3em;
+}
 .timeline_out {
   display: flex;
+  align-items: center;
+  font-size:1em;
+}
+.dropButton {
+  font-size:1em;
 }
 .spcr_div {
   height: .3em;
   width: 280px;
   background-color: darkgray;
 }
-.spcr_txt {
-  height: .3em;
-  width: 75px;
-  background-color: white;
+.blankTime {
+  color: white;
+  font-size:1.5em;
+  min-width:3em;
+}
+.spacer {
+  color: white;
+  min-width: 28px;
+}
+.route_div {
+  width: 280px;
+  font-size:1.5em;
+  text-align: center;
 }
 .text {
   text-align:left;
@@ -49,7 +63,6 @@
   .journey_btn {
     font-size:2em;
     padding:20px;
-    background-color:#2dab00;
   }
   .input_field {
     font-size:2em;
