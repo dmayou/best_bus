@@ -149,21 +149,19 @@ class Journey {
       trip.stop = this.trips[i].firstLeg.begin.stopId;
       trip.time = this.trips[i].firstLeg.begin.nextDeparture();
       if (verbose) {
-        output += '<br>' +
-          `Next arrival for route ${trip.routes} at stop ${trip.stop} is ${trip.time.time}.<br>`;
+        output += '<br/>' + this.stringVerbose(trip);
       } else {
         
       }
       // last leg
       if (this.trips[i].hasLastLeg()) {
-        trip.routes2 = this.trips[i].lastLeg.begin.routes;
-        trip.stop2 = this.trips[i].lastLeg.begin.stopId;
-        trip.time2 = this.trips[i].lastLeg.begin.nextDepartureAfterTime(
+        trip.routes = this.trips[i].lastLeg.begin.routes;
+        trip.stop = this.trips[i].lastLeg.begin.stopId;
+        trip.time = this.trips[i].lastLeg.begin.nextDepartureAfterTime(
           this.trips[i].firstLeg.arrivalTime().timeInMs
         );
         if (verbose) {
-          output +=
-            `Next arrival for route ${trip.routes2} at stop ${trip.stop2} is ${trip.time2.time}.<br>`;
+          output += this.stringVerbose(trip);
         } else {
 
         }
@@ -171,11 +169,15 @@ class Journey {
     }
     if (verbose) {
       this.outputToDom(output);
+      // console.log('firstLeg:', this.diagramHTML(trip));
     } else {
       document.getElementById("diagram").appendChild(firstLeg);
     }
   }
-  makeDiagram() {
+  stringVerbose(trip) {
+    return `Next arrival for route ${trip.routes} at stop ${trip.stop} is ${trip.time.time}.<br>`
+  }
+  diagramHTML(trip) {
     let firstLeg = document.createElement("div")
     firstLeg.className = 'timeline_out';
     let newEl = document.createElement("div");
@@ -184,20 +186,21 @@ class Journey {
     firstLeg.appendChild(newEl);
     newEl = document.createElement("span");
     newEl.className = 'blankTime';
-    newEl.innerHTML = time.time;
+    newEl.innerHTML = trip.time.time; // keeps element widths of both sections equal in rendering
     firstLeg.appendChild(newEl);
     newEl = document.createElement("div");
     newEl.className = 'route_div';
-    newEl.innerHTML = routes;
+    newEl.innerHTML = trip.routes;
     firstLeg.appendChild(newEl);
     newEl = document.createElement("span");
     newEl.className = 'blankTime';
-    newEl.innerHTML = time2.time;
+    newEl.innerHTML = trip.time2.time; // keeps element widths of both sections equal in rendering
     firstLeg.appendChild(newEl);
     newEl = document.createElement("div");
     newEl.className = 'route_div';
-    newEl.innerHTML = routes2;
+    newEl.innerHTML = trip.routes2;
     firstLeg.appendChild(newEl);
+    return firstLeg;
 
           // <hr />
           // <div class="timeline_out">
