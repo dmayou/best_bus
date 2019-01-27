@@ -161,6 +161,12 @@ class Journey {
           `Next arrival for route ${routes2} at stop ${stop2} is ${time2.time}.<br>`;
       }
     }
+    this.outputToDom(output);
+  }
+  displayDiagram() {
+
+  }
+  outputToDom(output) {
     document.getElementById('output').innerHTML = output;
     document.getElementById('countdown').innerHTML = '';
   }
