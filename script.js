@@ -141,41 +141,34 @@ class Journey {
     }
   }
   display(verbose = true) {
-    let output = (`Journey ${this.descr}:`);
-    let trip = {};
+    let output = `Journey ${this.descr}:`;
     for (let i=0, len=this.numTrips(); i<len; i++) {
-      // first leg
-      trip.routes = this.trips[i].firstLeg.begin.routes;
-      trip.stop = this.trips[i].firstLeg.begin.stopId;
-      trip.time = this.trips[i].firstLeg.begin.nextDeparture();
-      if (verbose) {
-        output += '<br/>' + this.stringVerbose(trip);
-      } else {
-        
+      let firstLeg = {
+        routes: this.trips[i].firstLeg.begin.routes,
+        stop: this.trips[i].firstLeg.begin.stopId,
+        time: this.trips[i].firstLeg.begin.nextDeparture(),
       }
-      // last leg
-      if (this.trips[i].hasLastLeg()) {
-        trip.routes = this.trips[i].lastLeg.begin.routes;
-        trip.stop = this.trips[i].lastLeg.begin.stopId;
-        trip.time = this.trips[i].lastLeg.begin.nextDepartureAfterTime(
-          this.trips[i].firstLeg.arrivalTime().timeInMs
-        );
-        if (verbose) {
-          output += this.stringVerbose(trip);
-        } else {
-
+      let lastLeg = (this.trips[i].hasLastLeg() &&
+        {
+          routes: this.trips[i].lastLeg.begin.routes,
+          stop: this.trips[i].lastLeg.begin.stopId,
+          time: this.trips[i].lastLeg.begin.nextDepartureAfterTime(
+                  this.trips[i].firstLeg.arrivalTime().timeInMs
+                ),
         }
+      );
+      if (verbose) {
+        output +=
+          '<br/>' + this.stringVerbose(firstLeg)
+          + this.stringVerbose(lastLeg);
+      } else {
+        document.getElementById("diagram").appendChild(firstLeg);
       }
     }
-    if (verbose) {
-      this.outputToDom(output);
-      // console.log('firstLeg:', this.diagramHTML(trip));
-    } else {
-      document.getElementById("diagram").appendChild(firstLeg);
-    }
+    this.outputToDom(output);
   }
-  stringVerbose(trip) {
-    return `Next arrival for route ${trip.routes} at stop ${trip.stop} is ${trip.time.time}.<br>`
+  stringVerbose(leg) {
+    return leg ? `Next arrival for route ${leg.routes} at stop ${leg.stop} is ${leg.time.time}.<br>` : '';
   }
   diagramHTML(trip) {
     let firstLeg = document.createElement("div")
