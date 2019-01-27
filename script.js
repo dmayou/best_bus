@@ -140,7 +140,7 @@ class Journey {
       trip.update();
     }
   }
-  display() {
+  display(verbose = true) {
     let output = (`Journey ${this.descr}:`);
 
     for (let i=0, len=this.numTrips(); i<len; i++) {
@@ -148,8 +148,10 @@ class Journey {
       let routes = this.trips[i].firstLeg.begin.routes;
       let stop = this.trips[i].firstLeg.begin.stopId;
       let time = this.trips[i].firstLeg.begin.nextDeparture();
-      output += '<br>' +
-        `Next arrival for route ${routes} at stop ${stop} is ${time.time}.<br>`;
+      if (verbose) {
+        output += '<br>' +
+          `Next arrival for route ${routes} at stop ${stop} is ${time.time}.<br>`;
+      }
       // last leg
       if (this.trips[i].hasLastLeg()) {
         let routes2 = this.trips[i].lastLeg.begin.routes;
@@ -157,15 +159,37 @@ class Journey {
         let time2 = this.trips[i].lastLeg.begin.nextDepartureAfterTime(
           this.trips[i].firstLeg.arrivalTime().timeInMs
         );
-        output +=
-          `Next arrival for route ${routes2} at stop ${stop2} is ${time2.time}.<br>`;
+        if (verbose) {
+          output +=
+            `Next arrival for route ${routes2} at stop ${stop2} is ${time2.time}.<br>`;
+        }
       }
     }
     this.outputToDom(output);
   }
-  displayDiagram() {
+  // displayDiagram() {
+  //   let output = (`Journey ${this.descr}:`);
 
-  }
+  //   for (let i = 0, len = this.numTrips(); i < len; i++) {
+  //     // first leg
+  //     let routes = this.trips[i].firstLeg.begin.routes;
+  //     let stop = this.trips[i].firstLeg.begin.stopId;
+  //     let time = this.trips[i].firstLeg.begin.nextDeparture();
+  //     output += '<br>' +
+  //       `Next arrival for route ${routes} at stop ${stop} is ${time.time}.<br>`;
+  //     // last leg
+  //     if (this.trips[i].hasLastLeg()) {
+  //       let routes2 = this.trips[i].lastLeg.begin.routes;
+  //       let stop2 = this.trips[i].lastLeg.begin.stopId;
+  //       let time2 = this.trips[i].lastLeg.begin.nextDepartureAfterTime(
+  //         this.trips[i].firstLeg.arrivalTime().timeInMs
+  //       );
+  //       output +=
+  //         `Next arrival for route ${routes2} at stop ${stop2} is ${time2.time}.<br>`;
+  //     }
+  //   }
+  //   this.outputToDom(output);
+  // }
   outputToDom(output) {
     document.getElementById('output').innerHTML = output;
     document.getElementById('countdown').innerHTML = '';
