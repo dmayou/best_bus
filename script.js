@@ -140,72 +140,66 @@ class Journey {
       trip.update();
     }
   }
-  display(verbose = true) {
-    let output = `Journey ${this.descr}:`;
-    for (let i=0, len=this.numTrips(); i<len; i++) {
-      let firstLeg = {
-        routes: this.trips[i].firstLeg.begin.routes,
-        stop: this.trips[i].firstLeg.begin.stopId,
-        time: this.trips[i].firstLeg.begin.nextDeparture(),
+  display(verbose = false) {
+    let output = `Journey ${this.descr}:<br/>`; // displays Journey and perhaps verbose output
+    let diagram = ''; // HTML for diagrams representing Trips in the Journey
+    // this breaks encapsulation. Should be refactored so that the Trip
+    // and/or Leg objects calculate and return firstLeg, lastLeg, and their HTML
+    let firstLeg = {};
+    let lastLeg = {};
+    for (let trip of this.trips) {
+      firstLeg = {
+        routes: trip.firstLeg.begin.routes,
+        stop: trip.firstLeg.begin.stopId,
+        time: trip.firstLeg.begin.nextDeparture(),
       }
-      let lastLeg = (this.trips[i].hasLastLeg() &&
+      lastLeg = (trip.hasLastLeg() &&
         {
-          routes: this.trips[i].lastLeg.begin.routes,
-          stop: this.trips[i].lastLeg.begin.stopId,
-          time: this.trips[i].lastLeg.begin.nextDepartureAfterTime(
-                  this.trips[i].firstLeg.arrivalTime().timeInMs
+          routes: trip.lastLeg.begin.routes,
+          stop: trip.lastLeg.begin.stopId,
+          time: trip.lastLeg.begin.nextDepartureAfterTime(
+                  trip.firstLeg.arrivalTime().timeInMs
                 ),
         }
       );
       if (verbose) {
         output +=
-          '<br/>' + this.stringVerbose(firstLeg)
-          + this.stringVerbose(lastLeg);
+          this.stringVerbose(firstLeg)
+          + this.stringVerbose(lastLeg) +'<br/>';
       } else {
-        document.getElementById("diagram").appendChild(firstLeg);
+        diagram += this.diagramHTML(firstLeg, lastLeg);
       }
     }
-    this.outputToDom(output);
+    this.outputToDom('output', output);
+    this.outputToDom('diagram', diagram);
   }
   stringVerbose(leg) {
     return leg ? `Next arrival for route ${leg.routes} at stop ${leg.stop} is ${leg.time.time}.<br>` : '';
   }
-  diagramHTML(trip) {
-    let firstLeg = document.createElement("div")
-    firstLeg.className = 'timeline_out';
-    let newEl = document.createElement("div");
-    newEl.className = 'spacer';
-    newEl.innerHTML = 'x'; // must have a value in order to be rendered with non-zero width
-    firstLeg.appendChild(newEl);
-    newEl = document.createElement("span");
-    newEl.className = 'blankTime';
-    newEl.innerHTML = trip.time.time; // keeps element widths of both sections equal in rendering
-    firstLeg.appendChild(newEl);
-    newEl = document.createElement("div");
-    newEl.className = 'route_div';
-    newEl.innerHTML = trip.routes;
-    firstLeg.appendChild(newEl);
-    newEl = document.createElement("span");
-    newEl.className = 'blankTime';
-    newEl.innerHTML = trip.time2.time; // keeps element widths of both sections equal in rendering
-    firstLeg.appendChild(newEl);
-    newEl = document.createElement("div");
-    newEl.className = 'route_div';
-    newEl.innerHTML = trip.routes2;
-    firstLeg.appendChild(newEl);
-    return firstLeg;
-
-          // <hr />
-          // <div class="timeline_out">
-          //   <div class="spacer">x</div>
-          //   <span class="blankTime">20 min</span>
-          //   <div class="route_div">7</div>
-          //   <span class="blankTime">10:43</span>
-          //   <div class="route_div">9</div>
-          // </div>
+  diagramHTML(firstLeg, lastLeg) {
+    return `
+          <div class="timeline_out">
+            <div class="spacer">x</div>
+            <span class="blankTime">${firstLeg.time.time}</span>
+            <div class="route_div">${firstLeg.routes}</div>
+            ${lastLeg ?
+            `<span class="blankTime">${lastLeg.time.time}</span>
+            <div class="route_div">${lastLeg.routes}</div>` : ''
+            }
+          </div>
+          <div class="timeline_out">
+            <button class="dropButton">D</button>
+            <span id="timeLeg1" class="legTime">${firstLeg.time.time}</span>
+            <div class="spcr_div" id="spcrLeg1"></div>
+            ${lastLeg ?
+            `<span id="timeLeg1" class="legTime">${lastLeg.time.time}</span>
+            <div class="spcr_div" id="spcrLeg2"></div>` : ''
+            }
+          </div>
+          <hr/>`;
   }
-  outputToDom(output) {
-    document.getElementById('output').innerHTML = output;
+  outputToDom(target, output) {
+    document.getElementById(target).innerHTML = output;
     document.getElementById('countdown').innerHTML = '';
   }
 }
