@@ -255,6 +255,7 @@ function resetUpdate() {
   }
   document.getElementById('countdown').innerHTML = '';
   document.getElementById('output').innerHTML = '';
+  document.getElementById('diagram').innerHTML = '';
 }
 
 function initJourneyHomeToWork() {
