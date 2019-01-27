@@ -9,9 +9,12 @@
   margin: 5px auto;
 	padding:9px 23px;
 }
+.stop_btn {
+  background-color: #2dab00;
+}
 .input_field {
   display:inline;
-  background-color:white;
+  background-color: lightgreen;
   border-radius:3px;
 	border:1px solid #0b0e07;
 	display:inline-block;
