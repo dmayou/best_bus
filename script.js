@@ -309,14 +309,34 @@ function initJourneyHomeToWork() {
   journey.addTrip(
     { firstLeg :
       { routes : ['Blue'],    // northbound
-        beginID: '51427',  // 27th Av & 25th St
-        endID  : '51424',  // 4th Av & 3rd St
+        beginID: '51427',  // Franklin Ave Station
+        endID  : '51424',  // Government Plaza Station
         nominalDur: 360,
         descr : ''
       },
       lastLeg :
       {
       }
+    }
+  );
+  journey.addTrip(
+    {
+      firstLeg:
+      {
+        routes: ['9'],    // northbound
+        beginID: '17603',  // 27th Av & 25th St
+        endID: '51533',  // Franklin Ave Station
+        nominalDur: 280,
+        descr: ''
+      },
+      lastLeg:
+      {
+        routes: ['Blue'],    // northbound
+        beginID: '51427',  // 27th Av & 25th St
+        endID: '51424',  // 4th Av & 3rd St
+        nominalDur: 360,
+        descr: ''
+      },
     }
   );
 }
